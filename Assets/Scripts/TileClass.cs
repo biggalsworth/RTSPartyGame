@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public enum TileTypes
@@ -90,5 +91,20 @@ public class TileClass
         else
             return 1;
 
+    }
+
+    internal float TerrainBonuses()
+    {
+        if (TileType == TileTypes.Hill)
+        {
+            return 0.2f;
+        }
+
+        if (TileType == TileTypes.Water)
+        {
+            return 0.5f;
+        }
+
+        return 0.0f;
     }
 }

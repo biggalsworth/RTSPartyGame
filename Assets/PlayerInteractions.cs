@@ -205,12 +205,12 @@ public class PlayerInteractions : MonoBehaviour
                     return;
                 }
 
-
-                //if (HexManager.instance.FindHex(hit.point, 2.0f).CheckOccupy() == 2 && HexManager.instance.FindHex(hit.point, 2.0f).Occupied.GetComponent<UnitClass>().team == team)
+                //Select a unit
                 if ( 
                     HexManager.instance.FindHex(hit.point, 2.0f).Occupied != null && 
                     selected != HexManager.instance.FindHex(hit.point, 2.0f).Occupied && 
-                    HexManager.instance.FindHex(hit.point, 2.0f).Occupied.GetComponent<UnitClass>().team == team)
+                    HexManager.instance.FindHex(hit.point, 2.0f).Occupied.GetComponent<UnitClass>().team == team
+                    )
                 {
                     ClearSelection();
 
@@ -314,7 +314,10 @@ public class PlayerInteractions : MonoBehaviour
             if (!MoveIcon.activeSelf)
             {
                 MoveIcon.SetActive(true);
+                MoveIcon.transform.position = selected.transform.position;
+
                 unavailableIcon.SetActive(false);
+                unavailableIcon.transform.position = selected.transform.position;
             }
 
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);

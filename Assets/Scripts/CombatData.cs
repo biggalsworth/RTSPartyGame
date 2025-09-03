@@ -1,10 +1,13 @@
 using System;
 using System.Collections;
+using System.ComponentModel;
 using UnityEngine;
 
 public class CombatData
 {
     internal GameObject owner;
+    internal UnitClass ownerUnit;
+    internal UnitClass opponentUnit;
 
     public int team;
 
@@ -37,7 +40,10 @@ public class CombatData
 
         // Step 2: Use unit's own damage as base
         double damageMultiplier = Math.Pow(1.05, strengthDifference); // 5% per point difference
-        int finalDamage = (int)(damage * damageMultiplier);
+
+        float terrainBonus = CalculateTerrainBonus(ownerUnit, opponentUnit);
+
+        int finalDamage = (int)(damage * damageMultiplier * terrainBonus);
 
         // Clamp damage to reasonable bounds
         finalDamage = Math.Clamp(finalDamage, 1, damage * 3); // Max 3x base damage
@@ -69,7 +75,10 @@ public class CombatData
         {
             int counterStrengthDiff = opponent.offenceRating - defenceRating;
             double counterMultiplier = Math.Pow(1.05, counterStrengthDiff);
-            int counterDamage = (int)(opponent.damage * counterMultiplier);
+
+            terrainBonus = opponent.CalculateTerrainBonus(opponentUnit, ownerUnit);
+
+            int counterDamage = (int)(opponent.damage * counterMultiplier * terrainBonus);
             counterDamage = Math.Clamp(counterDamage, 1, opponent.damage * 3);
 
             owner.GetComponent<UnitClass>().defending = true;
@@ -99,46 +108,28 @@ public class CombatData
         owner.GetComponent<UnitClass>().busy = false;
     }
 
+    private float CalculateTerrainBonus(UnitClass UnitA, UnitClass UnitB)
+    {
+        float terrainModifier = 1f;
+
+        //Check if we get a terrain bonus
+        terrainModifier += HexManager.instance.FindHex(UnitA.HexPosition, 2.0f).TerrainBonuses();
+
+        //check if oponnent gets terrain bonus
+        terrainModifier -= HexManager.instance.FindHex(UnitB.HexPosition, 2.0f).TerrainBonuses();
+
+        terrainModifier = Mathf.Clamp(terrainModifier, 0.5f, 2f); // Prevent extreme values
+
+        return terrainModifier;
+    }
 
     public void SimulateBattle(CombatData opponent)
     {
-        //run the coroutine throught he unitclass monobehaviour
-        owner.GetComponent<UnitClass>().StartCoroutine(BattleSimulation(opponent));
+        //run the coroutine throught he unitclass monobehaviour - allows animation timing
+        ownerUnit = owner.GetComponent<UnitClass>();
+        opponentUnit = opponent.owner.GetComponent<UnitClass>();
 
-        //// Step 1: Calculate strength differential
-        //int strengthDifference = offenceRating - opponent.defenceRating;
-        //
-        //// Step 2: Use unit's own damage as base
-        //double damageMultiplier = Math.Pow(1.05, strengthDifference); // 5% per point difference
-        //int finalDamage = (int)(damage * damageMultiplier);
-        //
-        //// Clamp damage to reasonable bounds
-        //finalDamage = Math.Clamp(finalDamage, 1, damage * 3); // Max 3x base damage
-        //
-        //// Step 3: Apply damage to opponent
-        //opponent.health -= finalDamage;
-        //opponent.owner.GetComponent<UnitClass>().defending = true;
-        //
-        //Debug.Log($"Team {team} attacks Team {opponent.team}!");
-        //Debug.Log($"Strength difference: {strengthDifference}");
-        //Debug.Log($"Damage dealt: {finalDamage}");
-        //Debug.Log($"Opponent's remaining health: {opponent.health}");
-        //
-        //// Step 4: Optional counterattack if opponent survives
-        //if (opponent.health > 0)
-        //{
-        //    int counterStrengthDiff = opponent.offenceRating - defenceRating;
-        //    double counterMultiplier = Math.Pow(1.05, counterStrengthDiff);
-        //    int counterDamage = (int)(opponent.damage * counterMultiplier);
-        //    counterDamage = Math.Clamp(counterDamage, 1, opponent.damage * 3);
-        //
-        //    health -= counterDamage;
-        //
-        //    Console.WriteLine($"Team {opponent.team} counterattacks!");
-        //    Console.WriteLine($"Counter damage dealt: {counterDamage}");
-        //    Console.WriteLine($"Your remaining health: {health}");
-        //}
-
+        ownerUnit.StartCoroutine(BattleSimulation(opponent));
     }
 
 }
