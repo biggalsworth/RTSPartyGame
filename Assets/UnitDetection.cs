@@ -20,10 +20,28 @@ public class UnitDetection : MonoBehaviour
                 HexManager.instance.FindHex(unit.transform.position, 2.0f).UnOccupy();
                 if(HexManager.instance.FindHex(unit.transform.position, 2.0f).TileType == TileTypes.Building)
                 {
+                    HexManager.instance.FindHex(unit.transform.position, 2.0f).standable = true;
                     HexManager.instance.FindHex(unit.transform.position, 2.0f).Building = null;
                     HexManager.instance.FindHex(unit.transform.position, 2.0f).TileType = TileTypes.Flat;
                 }
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        foreach (GameObject unit in seenUnits)
+        {
+            unit.GetComponent<UnitClass>().Mesh.SetActive(false);
+
+            HexManager.instance.FindHex(unit.transform.position, 2.0f).UnOccupy();
+            if (HexManager.instance.FindHex(unit.transform.position, 2.0f).TileType == TileTypes.Building)
+            {
+                HexManager.instance.FindHex(unit.transform.position, 2.0f).standable = true;
+                HexManager.instance.FindHex(unit.transform.position, 2.0f).Building = null;
+                HexManager.instance.FindHex(unit.transform.position, 2.0f).TileType = TileTypes.Flat;
+            }
+            
         }
     }
 
@@ -60,6 +78,9 @@ public class UnitDetection : MonoBehaviour
                     {
                         HexManager.instance.FindHex(currUnit.transform.position, 2.0f).Occupy(currCheck);
                     }
+
+                    HexManager.instance.FindHex(currUnit.transform.position, 2.0f).standable = currUnit.standable;
+
                     Debug.Log("Seen new enemy");
                     GetComponent<UnitClass>().SeenNewEnemy();
                 }
@@ -78,6 +99,7 @@ public class UnitDetection : MonoBehaviour
                 HexManager.instance.FindHex(unit.transform.position, 2.0f).UnOccupy();
                 if (HexManager.instance.FindHex(unit.transform.position, 2.0f).TileType == TileTypes.Building)
                 {
+                    HexManager.instance.FindHex(unit.transform.position, 2.0f).standable = true;
                     HexManager.instance.FindHex(unit.transform.position, 2.0f).Building = null;
                     HexManager.instance.FindHex(unit.transform.position, 2.0f).TileType = TileTypes.Flat;
                 }

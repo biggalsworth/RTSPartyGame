@@ -14,6 +14,7 @@ public class BuildingUnit : UnitClass
         transform.position = HexManager.instance.HexToWorld(HexPosition, 2f);
         HexManager.instance.Hexes[HexPosition].UnOccupy();
         HexManager.instance.Hexes[HexPosition].Build(gameObject);
+        HexManager.instance.Hexes[HexPosition].standable = standable;
     }
 
     // Update is called once per frame
@@ -28,6 +29,7 @@ public class BuildingUnit : UnitClass
 
     public override void UnitDestroy()
     {
+        HexManager.instance.Hexes[HexPosition].standable = true;
         HexManager.instance.Hexes[HexPosition].Building = null;
         HexManager.instance.Hexes[HexPosition].TileType = TileTypes.Flat;
     }

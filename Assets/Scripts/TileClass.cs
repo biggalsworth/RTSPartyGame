@@ -16,6 +16,8 @@ public class TileClass
     internal TileTypes TileType;
     internal GameObject Building;
     internal GameObject Occupied;
+    internal bool standable = true;
+
     public TileClass(Vector2 _ID, GameObject _tile)
     {
         ID = _ID;
@@ -49,7 +51,7 @@ public class TileClass
     //return a code to give more detail on occupying options. 0 = can occupy, 1 = obstacle is here, 2 = a unit is here, 3 = a building is here
     public int CheckOccupy()
     {
-        if(TileType == TileTypes.Mountain || TileType == TileTypes.Hill || TileType == TileTypes.Water)
+        if(standable == false || TileType == TileTypes.Mountain || TileType == TileTypes.Hill || TileType == TileTypes.Water)
             return 1;
 
         if (Occupied == null && Building == null)
@@ -70,7 +72,7 @@ public class TileClass
 
     public int TraverseCost()
     {
-        if (Occupied != null && Occupied.GetComponent<UnitClass>() && TileType != TileTypes.Building)
+        if (standable == false || Occupied != null && Occupied.GetComponent<UnitClass>() && TileType != TileTypes.Building)
             return -1;// Cannot traverse
 
         if (Building != null && Building.GetComponent<UnitClass>().team != MatchSettings.instance.team)

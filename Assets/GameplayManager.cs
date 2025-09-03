@@ -52,7 +52,7 @@ public class GameplayManager : MonoBehaviour
 
             Debug.Log("Spawning " + unit.name);
 
-            ServerClient.instance.SpawnUnit(unit.transform.position, MatchSettings.instance.team, unit.GetComponent<UnitClient>().prefabID); // Send to server
+            ServerClient.instance.SpawnUnit(unit.transform.position, unit.transform.rotation, MatchSettings.instance.team, unit.GetComponent<UnitClient>().prefabID); // Send to server
             Destroy(unit);
         }
 

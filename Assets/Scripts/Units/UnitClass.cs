@@ -25,6 +25,7 @@ public class UnitClass : MonoBehaviour
     public int cost;
 
     public int team;
+    public bool standable = true;
     public int moveDistance = 1;
     private bool attacked;
     public int movesLeft;
@@ -53,9 +54,9 @@ public class UnitClass : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         //agent.isStopped = true;
 
-        //movesLeft = moveDistance;
-        movesLeft = 0;
+        movesLeft = moveDistance;
         attacked = true;
+        //movesLeft = 0;
         busy = false;
     }
 

@@ -1,3 +1,5 @@
+using NUnit.Framework.Internal;
+using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using Unity.VisualScripting.FullSerializer.Internal;
@@ -19,6 +21,7 @@ public class PlayerInteractions : MonoBehaviour
 
     bool building = false;
     GameObject currBuild = null;
+    Quaternion buildRot = new Quaternion(0,0,0,0);
 
     Vector2 teamTile;
     internal GameObject selected;
@@ -40,7 +43,6 @@ public class PlayerInteractions : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
         busy = false;
 
         //ground_layer = LayerMask.NameToLayer("Ground");
@@ -48,6 +50,7 @@ public class PlayerInteractions : MonoBehaviour
         controls = Controls.instance.input;
 
         controls.Mouse.Click.performed += CheckClick;
+        controls.Player.Rotate.performed += RotateBuild;
 
         team = MatchSettings.instance.team;
         budget = MatchSettings.instance.Budget;
@@ -55,6 +58,8 @@ public class PlayerInteractions : MonoBehaviour
         unavailableIcon.SetActive(false);
         MoveIcon.SetActive(false);
         pathLine.enabled = false;
+
+        buildRot = Quaternion.identity;
 
         teamTile = new Vector2(Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
         if(team == 1)
@@ -141,6 +146,14 @@ public class PlayerInteractions : MonoBehaviour
         }
     }
 
+    private void RotateBuild(InputAction.CallbackContext context)
+    {
+        Debug.Log("Before: " + buildRot);
+        buildRot *= Quaternion.Euler(0, 30, 0); //increase the rotation by 1 hex angle
+        BuildPreview.transform.rotation = buildRot;
+        Debug.Log("After: " + buildRot);
+    }
+
     void CheckClick(InputAction.CallbackContext context)
     {
         if(Input.GetMouseButton(0) && EventSystem.current.IsPointerOverGameObject() == false)
@@ -159,7 +172,7 @@ public class PlayerInteractions : MonoBehaviour
                     if (currBuild != null && currBuild.GetComponent<BuildingClass>().cost <= budget && HexManager.instance.HexDistance(teamTile, HexManager.instance.WorldToHex(hit.point, 2f)) <= MatchSettings.instance.size.x / 4)
                     {
                         budget -= currBuild.GetComponent<BuildingClass>().cost;
-                        GameObject newObj = Instantiate(currBuild.GetComponent<BuildingClass>().building, HexManager.instance.SnapToHexGrid(hit.point, 2f), Quaternion.identity, HexManager.instance.FindHex(hit.point, 2f).Tile.transform);
+                        GameObject newObj = Instantiate(currBuild.GetComponent<BuildingClass>().building, HexManager.instance.SnapToHexGrid(hit.point, 2f), buildRot, HexManager.instance.FindHex(hit.point, 2f).Tile.transform);
                         
                         
                         if(newObj.GetComponent<UnitClass>())
@@ -178,6 +191,7 @@ public class PlayerInteractions : MonoBehaviour
                         selected = null;
                         currBuild = null;
                         building = false;
+                        buildRot = Quaternion.identity;
                     }
 
                     if (selected != null)
@@ -248,6 +262,7 @@ public class PlayerInteractions : MonoBehaviour
             {
                 BuildPreview.transform.localScale = currBuild.transform.localScale;
                 BuildPreview.transform.rotation = currBuild.transform.rotation;
+                buildRot = Quaternion.identity;
                 //BuildPreview.GetComponent<MeshFilter>().mesh = currBuild.Model.GetComponent<MeshFilter>().sharedMesh;
                 BuildPreview.SetActive(true);
             }
@@ -620,6 +635,8 @@ public class PlayerInteractions : MonoBehaviour
             building = true;
             //currBuild = prefab;
             currBuild = Instantiate(prefab.gameObject, BuildPreview.transform);
+            buildRot = Quaternion.identity;
+            BuildPreview.transform.rotation = buildRot;
             selected = null;
         }
     }

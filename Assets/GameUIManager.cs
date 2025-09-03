@@ -16,9 +16,12 @@ public class GameUIManager : MonoBehaviour
     public TextMeshProUGUI Health;
     public TextMeshProUGUI Movement;
 
+    public GameObject DeleteUnitButton;
+
     private void Start()
     {
         WinLosePanel.SetActive(false);
+        playerInfo = GameObject.FindWithTag("Player").GetComponent<PlayerInteractions>();
     }
 
     public void Update()
@@ -33,14 +36,15 @@ public class GameUIManager : MonoBehaviour
             return;
         }
 
-        playerInfo = GameObject.FindWithTag("Player").GetComponent<PlayerInteractions>();
-
         playerFunds.text = "Team " + playerInfo.team + "\n" + "Funds: " + playerInfo.budget;
 
         if(playerInfo.selected != null)
         {
             if(!statsPanel.activeSelf)
                 statsPanel.SetActive(true);
+
+            if (!DeleteUnitButton.activeSelf)
+                DeleteUnitButton.SetActive(true);
 
             Name.text = playerInfo.selected.GetComponent<UnitClass>().UnitName;
             Health.text = Mathf.Clamp(playerInfo.selected.GetComponent<UnitClass>().health, 0, playerInfo.selected.GetComponent<UnitClass>().maxHealth) + " / " + playerInfo.selected.GetComponent<UnitClass>().maxHealth;
@@ -50,12 +54,21 @@ public class GameUIManager : MonoBehaviour
         {
             if (statsPanel.activeSelf)
                 statsPanel.SetActive(false);
+
+            if (DeleteUnitButton.activeSelf)
+                DeleteUnitButton.SetActive(false);
         }
+
 
         if(Input.GetKeyDown(KeyCode.Escape) && GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("OpenBuilds"))
         {
             GetComponent<Animator>().Play("CloseBuilds");
         }
+    }
+
+    public void DestroyUnit()
+    {
+        Destroy(playerInfo.selected);
     }
 
     public void LeaveGame()

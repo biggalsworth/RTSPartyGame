@@ -65,9 +65,9 @@ public class NetworkRelay : NetworkBehaviour
     }
 
     [Command(requiresAuthority = false)]
-    public void CmdSpawnUnit(Vector3 spawnPos, int team, int unitType)
+    public void CmdSpawnUnit(Vector3 spawnPos, Quaternion rotation, int team, int unitType)
     {
-        GameObject unit = Instantiate(prefabs[unitType], spawnPos, Quaternion.identity);
+        GameObject unit = Instantiate(prefabs[unitType], spawnPos, rotation);
 
         try
         {

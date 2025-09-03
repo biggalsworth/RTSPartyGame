@@ -166,9 +166,9 @@ public class ServerClient : MonoBehaviour
         }
     }
 
-    public void SpawnUnit(Vector3 position, int team, int v)
+    public void SpawnUnit(Vector3 position, Quaternion rotation, int team, int v)
     {
-        messageRelay.CmdSpawnUnit(position, team, v);
+        messageRelay.CmdSpawnUnit(position, rotation, team, v);
     }
 
     internal void DestroyUnit(GameObject unit)
