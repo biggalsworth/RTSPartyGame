@@ -6,6 +6,7 @@ using System.Net;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Linq;
+using System.Collections;
 
 public class ServerClient : MonoBehaviour
 {
@@ -31,23 +32,34 @@ public class ServerClient : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         //joinCode = MatchSettings.instance.JoinCode;
-        joinCode = GetLocalIPAddress();
+        //joinCode = GetLocalIPAddress();
 
         //messageRelay = new NetworkRelay();
 
         NetworkClient.RegisterHandler<Notification>(OnMessageRecieved);
         NetworkClient.RegisterHandler<GameSettings>(RecievedSettings);
-        NetworkClient.OnConnectedEvent += HandleClientConnected;
-
-        // Get the local player object
-        messageRelay = NetworkClient.connection.identity.GetComponent<NetworkRelay>();
+        NetworkClient.OnConnectedEvent += HandleClientConnected;    
 
     }
 
     private void HandleClientConnected()
     {
-        messageRelay = NetworkClient.connection.identity.GetComponent<NetworkRelay>();
+        Debug.Log("Waiting for message relay: " + messageRelay);
+        StartCoroutine(WaitForIdentity());
     }
+
+    private IEnumerator WaitForIdentity()
+    {
+        while (NetworkClient.connection == null || NetworkClient.connection.identity == null)
+        {
+            Debug.Log("MessageRelay is not ready");
+            yield return null;
+        }
+
+        messageRelay = NetworkClient.connection.identity.GetComponent<NetworkRelay>();
+        Debug.Log("MessageRelay is ready: " + messageRelay);
+    }
+
 
     private void Update()
     {
@@ -79,8 +91,8 @@ public class ServerClient : MonoBehaviour
         Debug.Log("Connecting to " + joinCode);
         if(NetworkClient.isConnected)
             connected = true;
-
-        NetworkClient.Send(new Notification { text = "connected" });
+        else
+            NetworkClient.Send(new Notification { text = "connected" });
 
         //});
     }

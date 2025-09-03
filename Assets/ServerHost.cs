@@ -31,7 +31,7 @@ public class ServerHost : MonoBehaviour
 
         instance = this;
 
-        JoinCode = MatchSettings.instance.JoinCode;
+        JoinCode = GetLocalIPAddress();
 
         if (MatchSettings.instance.hosting)
         {
@@ -58,6 +58,7 @@ public class ServerHost : MonoBehaviour
     {
 
         JoinCode = GetLocalIPAddress();
+        //JoinCode = "localHost";
         MatchSettings.instance.JoinCode = JoinCode;
 
         //string joinCode = GenerateJoinCode();
@@ -75,13 +76,18 @@ public class ServerHost : MonoBehaviour
 
     string GetLocalIPAddress()
     {
-        var host = Dns.GetHostEntry(Dns.GetHostName());
-        foreach (var ip in host.AddressList)
+        using (var webClient = new System.Net.WebClient())
         {
-            if (ip.AddressFamily == AddressFamily.InterNetwork)
-                return ip.ToString();
+            return webClient.DownloadString("https://api.ipify.org");
         }
-        return "No IPv4 address found";
+
+        //var host = Dns.GetHostEntry(Dns.GetHostName());
+        //foreach (var ip in host.AddressList)
+        //{
+        //    if (ip.AddressFamily == AddressFamily.InterNetwork)
+        //        return ip.ToString();
+        //}
+        //return "No IPv4 address found";
     }
 
     public static string LookupIP(string code)

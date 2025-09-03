@@ -689,7 +689,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c6bb039920dad542b102558c0e48298, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  JoinCode: JV87
+  JoinCode: 
 --- !u!4 &683591041
 Transform:
   m_ObjectHideFlags: 0
@@ -717,7 +717,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cc12edc30b1b3544a2ac2a032e0f2ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  joinCode: JV87
+  joinCode: 
 --- !u!114 &683591043
 MonoBehaviour:
   m_ObjectHideFlags: 0
