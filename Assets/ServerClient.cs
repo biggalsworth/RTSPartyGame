@@ -68,7 +68,7 @@ public class ServerClient : MonoBehaviour
 
         if (connected && messageRelay == null)
         {
-            GetLocalPlayer();
+            StartCoroutine(WaitForIdentity());
         }
 
         //foreach (var kvp in NetworkServer.connections)
