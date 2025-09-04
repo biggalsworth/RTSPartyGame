@@ -17,7 +17,7 @@ public class LobbyUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        IPText.text = "IP: " + MatchSettings.instance.JoinCode;
+        IPText.text = MatchSettings.instance.JoinCode;
 
         if(MatchSettings.instance.hosting)
         {
@@ -38,6 +38,11 @@ public class LobbyUI : MonoBehaviour
         
         Destroy(ServerHost.instance.gameObject);
         SceneLoader.instance.BeginScene("MainMenu");
+    }
+
+    public void CopyToClipboard(TextMeshProUGUI text)
+    {
+        GUIUtility.systemCopyBuffer = text.text;
     }
 
 }

@@ -5,6 +5,15 @@ using System.Net;
 using UnityEngine;
 using System;
 using System.Linq;
+using Unity.Netcode.Transports.UTP;
+using Unity.Services.Authentication;
+using Unity.Services.Core;
+using Unity.Services.Relay.Models;
+using Unity.Services.Relay;
+using System.Collections;
+using System.Threading.Tasks;
+using UnityEditor;
+using Unity.Services.Core.Environments;
 
 public class ServerHost : MonoBehaviour
 {
@@ -21,7 +30,7 @@ public class ServerHost : MonoBehaviour
 
     int turn;
 
-    private void Start()
+    private void Awake()
     {
         if (instance != null)
         {
@@ -31,12 +40,13 @@ public class ServerHost : MonoBehaviour
 
         instance = this;
 
-        JoinCode = GetLocalIPAddress();
+        //JoinCode = GetLocalIPAddress();
 
         if (MatchSettings.instance.hosting)
         {
             DontDestroyOnLoad(gameObject);
-            CreateServer();
+            StartCoroutine(LaunchRelayServer());
+            //CreateServer();
         }
 
         //messageRelay = NetworkRelay.instance;
@@ -54,6 +64,68 @@ public class ServerHost : MonoBehaviour
 
 
     //Creating connections
+    private IEnumerator LaunchRelayServer()
+    {
+        var task = CreateServer();
+        while (!task.IsCompleted) yield return null;
+
+        if (task.Exception != null)
+            Debug.LogError(task.Exception);
+    }
+    public async Task CreateServer()
+    {
+        //var options = new InitializationOptions().SetEnvironmentName("production"); // or "staging"
+        await UnityServices.InitializeAsync();
+
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            await AuthenticationService.Instance.SignInAnonymouslyAsync(new SignInOptions { CreateAccount = true });
+        }
+
+        var allocation = await RelayService.Instance.CreateAllocationAsync(4);
+        JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+        MatchSettings.instance.JoinCode = JoinCode;
+
+
+        var relayServerData = AllocationUtils.ToRelayServerData(allocation, "udp");
+        var transport = NetworkManager.singleton.GetComponent<UnityTransport>();
+        
+        Debug.Log("NetworkManager.singleton: " + NetworkManager.singleton);
+        Debug.Log("UnityTransport component: " + NetworkManager.singleton?.GetComponent<UnityTransport>());
+        Debug.Log("RelayServerData: " + relayServerData);
+
+        transport.SetRelayServerData(relayServerData);
+
+        NetworkManager.singleton.StartHost();
+        NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
+
+        Debug.Log($"Relay Join Code: {JoinCode}");
+        serverHosted = true;
+    }
+
+
+    //async void CreateServer()
+    //{
+    //    await UnityServices.InitializeAsync();
+    //    await AuthenticationService.Instance.SignInAnonymouslyAsync();
+    //
+    //    var allocation = await RelayService.Instance.CreateAllocationAsync(4);
+    //    JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+    //    MatchSettings.instance.JoinCode = JoinCode;
+    //
+    //    var relayServerData = AllocationUtils.ToRelayServerData(allocation, "udp");
+    //    var transport = NetworkManager.singleton.GetComponent<UnityTransport>();
+    //    transport.SetRelayServerData(relayServerData);
+    //
+    //    NetworkManager.singleton.StartHost();
+    //    NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
+    //
+    //    Debug.Log($"Relay Join Code: {JoinCode}");
+    //    serverHosted = true;
+    //}
+
+    //Using mirror
+    /*
     void CreateServer()
     {
 
@@ -72,7 +144,7 @@ public class ServerHost : MonoBehaviour
 
         serverHosted = true;
     }
-
+    */
 
     string GetLocalIPAddress()
     {

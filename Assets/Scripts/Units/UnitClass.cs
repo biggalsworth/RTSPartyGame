@@ -89,16 +89,19 @@ public class UnitClass : MonoBehaviour
         //    GameObject.FindWithTag("Player").GetComponent<PlayerInteractions>().busy = true;
 
         UnitUpdate();
-
-        health = data.health;
-
-        if (data.health <= 0)
+        if(data != null)
         {
-            Debug.Log(gameObject.name + " IS DEAD");
-            GameplayManager.instance.AddDestroy(gameObject);
-            gameObject.SetActive(false);
+            health = data.health;
+
+            if (data.health <= 0)
+            {
+                Debug.Log(gameObject.name + " IS DEAD");
+                GameplayManager.instance.AddDestroy(gameObject);
+                gameObject.SetActive(false);
+            }
         }
     }
+            
     private void OnDisable()
     {
         HexManager.instance.Hexes[HexPosition].UnOccupy();

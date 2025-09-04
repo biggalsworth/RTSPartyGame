@@ -69,6 +69,7 @@ public class MainMenuUI : MonoBehaviour
 
     public void JoinGame()
     {
+        MatchSettings.instance.JoinCode = GameObject.Find("JoinCodeInput").GetComponent<TMP_InputField>().text;
         MatchSettings.instance.hosting = false;
         SceneLoader.instance.BeginScene("Lobby");
     }

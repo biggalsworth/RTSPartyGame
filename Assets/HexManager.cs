@@ -8,7 +8,7 @@ public class HexManager : MonoBehaviour
 
     public Dictionary<Vector2, TileClass> Hexes;
 
-    internal void Awake()
+    internal void Start()
     {
         instance = this;
         Hexes = new Dictionary<Vector2, TileClass>();
