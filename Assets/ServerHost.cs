@@ -116,7 +116,7 @@ Identity: {NetworkClient.connection?.identity}";
 
         transport.SetRelayServerData(relayServerData);
 
-        NetworkManager.singleton.StartHost();
+        NetworkManager.singleton.StartServer();
 
         NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
 
