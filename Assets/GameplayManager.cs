@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class GameplayManager : MonoBehaviour
@@ -35,11 +36,11 @@ public class GameplayManager : MonoBehaviour
 
     public void NextTurn()
     {
-        if(ServerHost.instance == null)
-        {
-            Debug.Log("Not Online");
-            return;
-        }
+        //if(ServerHost.instance == null)
+        //{
+        //    Debug.Log("Not Online");
+        //    return;
+        //}
         if(MatchSettings.instance.team != turn)
         {
             return;
@@ -82,6 +83,8 @@ public class GameplayManager : MonoBehaviour
         turn = turn == 0 ? 1 : 0;
 
         ServerClient.instance.MessageServer("turn\n" + turn);
+        GameObject.Find("TurnText").GetComponent<TextMeshProUGUI>().text = "Turn: " + turn;
+
     }
 
     internal void AddDestroy(GameObject gameObject)

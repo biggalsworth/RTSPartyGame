@@ -29,7 +29,7 @@ public class ServerHost : MonoBehaviour
 
     internal NetworkRelay messageRelay;
 
-
+    int team = 0;
     int turn;
 
     private void Awake()
@@ -266,7 +266,8 @@ Identity: {NetworkClient.connection?.identity}";
                 WaterChance = settings.WaterChance
             };
             conn.Send<GameSettings>(newSettings);
-            conn.Send<Notification>(new Notification { text = "team\n" + (NetworkServer.connections.Count - 1) });
+            conn.Send<Notification>(new Notification { text = "team\n" + team });
+            team++;
 
             NetworkServer.SendToAll<Notification>(new Notification { text = "NEWCONNECTION"});
 

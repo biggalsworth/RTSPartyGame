@@ -18,6 +18,7 @@ using Unity.Services.Core.Environments;
 using Unity.Networking.Transport.Relay;
 using TMPro;
 using Utp;
+using Unity.Services.Matchmaker.Models;
 
 
 public class ServerClient : MonoBehaviour
@@ -31,6 +32,8 @@ public class ServerClient : MonoBehaviour
     public NetworkRelay messageRelay = null;
 
     internal int GameState = 0;
+
+    NetworkIdentity player;
 
     private void Start()
     {
@@ -133,6 +136,9 @@ public class ServerClient : MonoBehaviour
         {
             HandleClientConnected();
         }
+
+        player = NetworkClient.localPlayer;
+
 
         //if(connected && messageRelay == null)
         //{
@@ -262,6 +268,7 @@ Identity: {NetworkClient.connection?.identity}";
         }
         if (lines[0] == "turn")
         {
+            GameObject.Find("TurnText").GetComponent<TextMeshProUGUI>().text = "Turn: " + lines[1];
             GameplayManager.instance.turn = int.Parse(lines[1]);
             foreach(UnitClass unit in GameObject.FindObjectsByType<UnitClass>(FindObjectsSortMode.None))
             {
@@ -278,7 +285,27 @@ Identity: {NetworkClient.connection?.identity}";
 
     public void SpawnUnit(Vector3 position, Quaternion rotation, int team, int v)
     {
-        messageRelay.CmdSpawnUnit(position, rotation, team, v);
+        //messageRelay.CmdSpawnUnit(position, rotation, team, v);
+
+        player = NetworkClient.localPlayer;
+
+        if (player != null)
+        {
+            var relay = player.GetComponent<NetworkRelay>();
+            if (relay != null)
+            {
+                relay.CmdSpawnUnit(position, rotation, team, v);
+            }
+            else
+            {
+                Debug.LogWarning("NetworkRelay not found on player.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Local player not available.");
+        }
+
     }
 
     internal void DestroyUnit(GameObject unit)
