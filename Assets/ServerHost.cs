@@ -14,6 +14,7 @@ using System.Collections;
 using System.Threading.Tasks;
 using UnityEditor;
 using Unity.Services.Core.Environments;
+using TMPro;
 
 public class ServerHost : MonoBehaviour
 {
@@ -71,6 +72,25 @@ public class ServerHost : MonoBehaviour
 
         if (task.Exception != null)
             Debug.LogError(task.Exception);
+        else
+        {
+            Debug.Log("UnityServices initialized");
+            Debug.Log("Signed in: " + AuthenticationService.Instance.IsSignedIn);
+            Debug.Log("Join code: " + JoinCode);
+            Debug.Log("NetworkClient.isConnected: " + NetworkClient.isConnected);
+            Debug.Log("Connection: " + NetworkClient.connection);
+            Debug.Log("Identity: " + NetworkClient.connection?.identity);
+
+            GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = $@"
+UnityServices initialized
+Signed in: {AuthenticationService.Instance.IsSignedIn}
+Join code: {JoinCode}
+NetworkClient.isConnected: {NetworkClient.isConnected}
+Connection: {NetworkClient.connection}
+Identity: {NetworkClient.connection?.identity}";
+
+        }
+
     }
     public async Task CreateServer()
     {
@@ -97,6 +117,7 @@ public class ServerHost : MonoBehaviour
         transport.SetRelayServerData(relayServerData);
 
         NetworkManager.singleton.StartHost();
+
         NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
 
         Debug.Log($"Relay Join Code: {JoinCode}");
