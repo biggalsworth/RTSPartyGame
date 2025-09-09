@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using Unity.Services.Core.Environments;
 using TMPro;
+using Utp;
 
 public class ServerHost : MonoBehaviour
 {
@@ -102,26 +103,48 @@ Identity: {NetworkClient.connection?.identity}";
             await AuthenticationService.Instance.SignInAnonymouslyAsync(new SignInOptions { CreateAccount = true });
         }
 
-        var allocation = await RelayService.Instance.CreateAllocationAsync(4);
-        JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-        MatchSettings.instance.JoinCode = JoinCode;
+        //var allocation = await RelayService.Instance.CreateAllocationAsync(4);
+        //JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+        //MatchSettings.instance.JoinCode = JoinCode;
+        //
+        //
+        //var relayServerData = AllocationUtils.ToRelayServerData(allocation, "udp");
+        //var transport = NetworkManager.singleton.GetComponent<UnityTransport>();
+        //
+        //Debug.Log("NetworkManager.singleton: " + NetworkManager.singleton);
+        //Debug.Log("UnityTransport component: " + NetworkManager.singleton?.GetComponent<UnityTransport>());
+        //Debug.Log("RelayServerData: " + relayServerData);
+        //
+        //transport.SetRelayServerData(relayServerData);
+        //
+        //NetworkManager.singleton.StartServer();
+        //
+        //NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
+        //
+        //Debug.Log($"Relay Join Code: {JoinCode}");
+        //serverHosted = true;
 
+        var transport = NetworkManager.singleton.GetComponent<UtpTransport>();
+        transport.useRelay = true;
 
-        var relayServerData = AllocationUtils.ToRelayServerData(allocation, "udp");
-        var transport = NetworkManager.singleton.GetComponent<UnityTransport>();
-        
-        Debug.Log("NetworkManager.singleton: " + NetworkManager.singleton);
-        Debug.Log("UnityTransport component: " + NetworkManager.singleton?.GetComponent<UnityTransport>());
-        Debug.Log("RelayServerData: " + relayServerData);
+        transport.AllocateRelayServer(
+            maxPlayers: 4,
+            regionId: "europe-central2", // or your preferred region
+            onSuccess: (joinCode) =>
+            {
+                JoinCode = joinCode;
+                Debug.Log($"Relay Join Code: {JoinCode}");
+                MatchSettings.instance.JoinCode = JoinCode;
 
-        transport.SetRelayServerData(relayServerData);
+                NetworkManager.singleton.StartServer();
+                NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
+                serverHosted = true;
+            },
+            onFailure: () =>
+            {
+                Debug.LogError("Relay allocation failed");
+            });
 
-        NetworkManager.singleton.StartServer();
-
-        NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
-
-        Debug.Log($"Relay Join Code: {JoinCode}");
-        serverHosted = true;
     }
 
 

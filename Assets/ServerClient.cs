@@ -15,6 +15,11 @@ using Unity.Services.Relay;
 using UnityEditor;
 using Unity.Services.Core.Environments;
 
+using Unity.Networking.Transport.Relay;
+using TMPro;
+using Utp;
+
+
 public class ServerClient : MonoBehaviour
 {
     public static ServerClient instance;
@@ -91,20 +96,42 @@ public class ServerClient : MonoBehaviour
         var joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
         var relayServerData = AllocationUtils.ToRelayServerData(joinAllocation, "udp");
 
-        var transport = NetworkManager.singleton.GetComponent<UnityTransport>();
-        transport.SetRelayServerData(relayServerData);
+        Debug.Log("ConnectionData: " + Convert.ToBase64String(joinAllocation.ConnectionData));
 
-        NetworkManager.singleton.StartClient();
+        //var transport = NetworkManager.singleton.GetComponent<UtpTransport>();
+        //transport.SetRelayServerData(relayServerData);
+        //
+        //NetworkManager.singleton.StartClient();
+
+        var transport = NetworkManager.singleton.GetComponent<UtpTransport>();
+
+        NetworkManager.singleton.networkAddress = "relay"; // Bypass Mirror's check
+
+        transport.useRelay = true;
+        transport.ConfigureClientWithJoinCode(joinCode,
+            onSuccess: () => NetworkManager.singleton.StartClient(),
+            onFailure: () => Debug.LogError("Relay join failed"));
+
+        Debug.Log("Transport connected: " + transport.ClientConnected());
+        Debug.Log("Mirror connected: " + NetworkClient.isConnected);
+
+
+        //NetworkManager.singleton.networkAddress = ""; // Bypass Mirror's check
+
     }
 
     private void Update()
     {
-        if (!connected)// && !isConnecting)
+        if (!connected && !isConnecting)
         {
-            joinCode = MatchSettings.instance.JoinCode;
-            AttemptConnection();
-            if (connected)
-                HandleClientConnected();
+            StartCoroutine(AttemptConnection());
+            //if (connected)
+            //    HandleClientConnected();
+        }
+
+        if(connected && isConnecting)
+        {
+            HandleClientConnected();
         }
 
         //if(connected && messageRelay == null)
@@ -125,8 +152,8 @@ public class ServerClient : MonoBehaviour
     }
 
 
-    //IEnumerator AttemptConnection()
-    void AttemptConnection()
+    IEnumerator AttemptConnection()
+    //void AttemptConnection()
     {
 
         //Just using mirror
@@ -141,8 +168,10 @@ public class ServerClient : MonoBehaviour
         //    NetworkClient.Send(new Notification { text = "connected" });
         //
 
-        //while(connected == false)
-        //{
+        while(connected == false)
+        {
+            joinCode = MatchSettings.instance.JoinCode;
+
             isConnecting = true;
             //joinCode = MatchSettings.instance.JoinCode;
             //if (joinCode == "")
@@ -151,11 +180,19 @@ public class ServerClient : MonoBehaviour
             JoinRelayClient(joinCode);
             Debug.Log("Connecting via Relay with join code: " + joinCode);
 
-            //yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(3f);
 
             Debug.Log("Connected : " + NetworkClient.isConnected);
             connected = NetworkClient.isConnected;
-        //}
+        }
+
+        GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = $@"
+UnityServices initialized
+Signed in: {AuthenticationService.Instance.IsSignedIn}
+Join code: {joinCode}
+NetworkClient.isConnected: {NetworkClient.isConnected}
+Connection: {NetworkClient.connection}
+Identity: {NetworkClient.connection?.identity}";
     }
 
     public void Disconnect()
