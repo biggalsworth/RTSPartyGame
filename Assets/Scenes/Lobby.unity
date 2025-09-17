@@ -901,6 +901,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   JoinCode: 
+  connected: 0
+  isConnecting: 0
+  canConnect: 0
+  canStart: 0
 --- !u!4 &683591041
 Transform:
   m_ObjectHideFlags: 0

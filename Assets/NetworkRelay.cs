@@ -4,15 +4,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+[System.Serializable]
 public struct Notification : NetworkMessage
 {
     public string text;
 }
+
+[System.Serializable]
 public struct GameSettings : NetworkMessage
 {
     public int Budget;
     public int MapSeed;
-    public Vector2 size;
+    public float sizex;
+    public float sizey;
     public int MountainChance;
     public int HillChance;
     public int WaterChance;
@@ -30,13 +34,13 @@ public struct GameSettings : NetworkMessage
 public class NetworkRelay : NetworkBehaviour
 {
 
-    //public static NetworkRelay instance;
+    public static NetworkRelay instance;
 
     public List<GameObject> prefabs = new List<GameObject>();
 
     private void Start()
     {
-        //instance = this;
+        instance = this;
     }
 
     [ClientRpc]
@@ -69,15 +73,12 @@ public class NetworkRelay : NetworkBehaviour
     {
         GameObject unit = Instantiate(prefabs[unitType], spawnPos, rotation);
 
-        try
-        {
-            unit.GetComponent<UnitClass>().team = team;
-            //unit.GetComponent<UnitClass>().data.team = team;
-        }
-        catch { }
+        unit.GetComponent<UnitClass>().team = team;
+        unit.GetComponent<UnitClient>().team = team;
+        //unit.GetComponent<UnitClass>().data.team = team;
+        
 
         NetworkServer.Spawn(unit);
-
 
         Debug.Log($"[Server] Spawned unit: {unit.name} at {spawnPos}");
     }

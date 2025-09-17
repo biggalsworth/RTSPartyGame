@@ -29,7 +29,7 @@ public class MatchSettings : MonoBehaviour
     {
         if (instance != null)
         {
-            Destroy(instance.gameObject); // Already exists, kill the duplicate
+            Destroy(gameObject); // Already exists, kill the duplicate
             return;
         }
 

@@ -1,3 +1,4 @@
+using Mirror;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -25,6 +26,7 @@ public class UnitClass : MonoBehaviour
     public int cost;
 
     public int team;
+
     public bool standable = true;
     public int moveDistance = 1;
     private bool attacked;
@@ -49,21 +51,30 @@ public class UnitClass : MonoBehaviour
     internal bool attacking = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Awake()
+    void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         //agent.isStopped = true;
+        team = GetComponent<UnitClient>().team;
+
+        health = maxHealth;
+        data = new CombatData(team, health, defenceRating, offenceRating, damage, attackRange);
+        data.owner = gameObject;
+
 
         movesLeft = moveDistance;
         attacked = true;
         //movesLeft = 0;
         busy = false;
+
+        if(team == MatchSettings.instance.team)
+            Mesh.SetActive(true);
+
+        BaseStart();
     }
 
-    internal void Start()
+    internal void BaseStart()
     {
-        //team = MatchSettings.instance.team;
-
         HexPosition = HexManager.instance.WorldToHex(transform.position, 2f);
         transform.position = HexManager.instance.HexToWorld(HexPosition, 2f);
 
@@ -73,14 +84,13 @@ public class UnitClass : MonoBehaviour
         Debug.Log(gameObject.name + "IS OCCUPYING TILE " + HexPosition);
         Debug.Log(HexPosition + " IS CODE " + HexManager.instance.Hexes[HexPosition].CheckOccupy());
 
-        health = maxHealth;
-        data = new CombatData(team, health, defenceRating, offenceRating, damage, attackRange);
-        data.owner = gameObject;
-
         UnitStart();
     }
 
-    public virtual void UnitStart() { }
+    public virtual void UnitStart() 
+    { 
+    
+    }
 
     // Update is called once per frame
     void Update()

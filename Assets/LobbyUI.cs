@@ -17,7 +17,8 @@ public class LobbyUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        IPText.text = MatchSettings.instance.JoinCode;
+        if(ServerClient.instance.connected)
+            IPText.text = MatchSettings.instance.JoinCode;
 
         if(MatchSettings.instance.hosting)
         {
@@ -31,12 +32,13 @@ public class LobbyUI : MonoBehaviour
     public void ReturnToMenu()
     {
         //if (MatchSettings.instance.hosting)
-        ServerHost.instance.CloseGame();
         ServerClient.instance.Disconnect();
+        ServerHost.instance.CloseGame();
 
         MatchSettings.instance.hosting = false;
         
         Destroy(ServerHost.instance.gameObject);
+
         SceneLoader.instance.BeginScene("MainMenu");
     }
 

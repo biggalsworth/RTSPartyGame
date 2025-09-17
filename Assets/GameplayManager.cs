@@ -1,8 +1,11 @@
+using Mirror;
 using NUnit.Framework;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class GameplayManager : MonoBehaviour
 {
@@ -45,16 +48,61 @@ public class GameplayManager : MonoBehaviour
         {
             return;
         }
-
-        foreach (GameObject unit in SpawnQueue)
+        List<GameObject> workingQueue = SpawnQueue;
+        //foreach (GameObject unit in SpawnQueue)
+        for (int i = SpawnQueue.Count - 1; i >= 0; i--)
         {
+            GameObject unit = SpawnQueue[i];
             Vector3 spawnPos = unit.transform.position;
-            int team = turn;
+            Quaternion spawnRot = unit.transform.rotation;
+            int team = unit.gameObject.GetComponent<UnitClass>().team;
+            int prefabID = unit.GetComponent<UnitClient>().prefabID;
 
             Debug.Log("Spawning " + unit.name);
 
-            ServerClient.instance.SpawnUnit(unit.transform.position, unit.transform.rotation, MatchSettings.instance.team, unit.GetComponent<UnitClient>().prefabID); // Send to server
+            //DestroyQueue.Add(unit);
+
+            //if (NetworkClient.active && !NetworkServer.active)
+            //{
+            //    ServerClient.instance.SpawnUnit(spawnPos, spawnRot, team, prefabID); // Send to server
+            //}
+
+            //Debug.Log("LOCAL PLAYER: " + NetworkClient.localPlayer);
+            //
+            //NetworkRelay messageRelay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
+            //
+            //if (messageRelay != null)
+            //{
+            //    messageRelay.CmdSpawnUnit(spawnPos, spawnRot, team, prefabID);
+            //}
+            //else
+            //{
+            //    Debug.LogWarning("NetworkRelay not found on player.");
+            //}
+
+            if (NetworkServer.active)
+            {
+                // Host is server -> spawn directly, no command
+                GameObject newUnit = Instantiate(NetworkManager.singleton.spawnPrefabs[prefabID], spawnPos, spawnRot);
+
+                newUnit.GetComponent<UnitClass>().team = team;
+                newUnit.GetComponent<UnitClient>().team = team;
+                //unit.GetComponent<UnitClass>().data.team = team;
+
+
+                NetworkServer.Spawn(newUnit);
+
+                Debug.Log($"[Server] Spawned unit: {newUnit.name} at {spawnPos}");
+            }
+            else
+            {
+                // Non-host client -> send command to server
+                NetworkRelay relay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
+                relay.CmdSpawnUnit(spawnPos, spawnRot, team, prefabID);
+            }
+
             Destroy(unit);
+            SpawnQueue.RemoveAt(i);
         }
 
         SpawnQueue.Clear(); // Reset for next turn
@@ -85,6 +133,12 @@ public class GameplayManager : MonoBehaviour
         ServerClient.instance.MessageServer("turn\n" + turn);
         GameObject.Find("TurnText").GetComponent<TextMeshProUGUI>().text = "Turn: " + turn;
 
+    }
+
+    IEnumerator DestroyAfterSpawn(GameObject placeholder)
+    {
+        yield return new WaitForSeconds(0.5f); // Adjust based on spawn timing
+        Destroy(placeholder);
     }
 
     internal void AddDestroy(GameObject gameObject)

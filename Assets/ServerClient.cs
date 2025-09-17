@@ -26,8 +26,9 @@ public class ServerClient : MonoBehaviour
     public static ServerClient instance;
 
     public string joinCode = "";
-    bool connected = false;
+    internal bool connected = false;
     bool isConnecting = false;
+    internal bool canConnect = true;
 
     public NetworkRelay messageRelay = null;
 
@@ -37,6 +38,12 @@ public class ServerClient : MonoBehaviour
 
     private void Start()
     {
+        if (FindObjectsByType<NetworkManager>(FindObjectsSortMode.None).Length > 1)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         if (instance != null)
         {
             Destroy(gameObject); // Already exists, kill the duplicate
@@ -52,28 +59,126 @@ public class ServerClient : MonoBehaviour
 
         //messageRelay = new NetworkRelay();
 
-        //NetworkClient.OnConnectedEvent += HandleClientConnected;
-        NetworkClient.RegisterHandler<Notification>(OnMessageRecieved);
-        NetworkClient.RegisterHandler<GameSettings>(RecievedSettings);
+        NetworkClient.OnConnectedEvent += HandleClientConnected;
 
         //StartCoroutine(AttemptConnection());    
         //StartCoroutine(WaitForIdentity());
 
+
+        //Assign handlers before starting the client
+        NetworkClient.RegisterHandler<Notification>(OnMessageRecieved);
+        NetworkClient.RegisterHandler<GameSettings>(RecievedSettings);
+
     }
     void print() { Debug.Log("WE HAVE CONNECTED"); }
+
+
+    private void Update()
+    {
+        if (MatchSettings.instance.hosting && MatchSettings.instance.JoinCode == "")
+            return;
+
+        if (!connected && !isConnecting)
+        {
+            isConnecting = true;
+            StartCoroutine(AttemptConnection());
+            //if (connected)
+            //    HandleClientConnected();
+        }
+
+        if (NetworkClient.isConnected && !isConnecting)
+        {
+            player = NetworkClient.localPlayer;
+            if (NetworkClient.ready == false)
+                NetworkClient.Ready();
+            if (messageRelay == null)
+                messageRelay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
+        }
+
+    }
+
+
+
+    IEnumerator AttemptConnection()
+    //void AttemptConnection()
+    {
+        yield return new WaitForSeconds(1f);
+
+        while (connected == false)
+        {
+            connected = NetworkClient.isConnected;
+
+            if (!connected)
+            {
+                Debug.Log("Disconnecting");
+                NetworkClient.Disconnect();
+            }
+
+            joinCode = MatchSettings.instance.JoinCode;
+
+            isConnecting = true;
+            //joinCode = MatchSettings.instance.JoinCode;
+            //if (joinCode == "")
+            //    yield return new WaitForSeconds(5f);
+
+
+            //Assign handlers before starting the client
+            NetworkClient.RegisterHandler<Notification>(OnMessageRecieved);
+            NetworkClient.RegisterHandler<GameSettings>(RecievedSettings);
+
+            //Check we arent hosting
+            if (!NetworkServer.active)
+            {
+                // Only non-host clients connect
+                JoinRelayClient(joinCode);
+            }
+
+            Debug.Log("Connecting via Relay with join code: " + joinCode);
+
+            yield return new WaitForSeconds(3f);
+
+            Debug.Log("Connected : " + NetworkClient.isConnected);
+            connected = NetworkClient.isConnected;
+
+        }
+
+        if (!NetworkClient.ready)
+        {
+            NetworkClient.Ready();
+        }
+
+
+        GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = $@"
+UnityServices initialized
+Signed in: {AuthenticationService.Instance.IsSignedIn}
+Join code: {joinCode}
+NetworkClient.isConnected: {NetworkClient.isConnected}
+Connection: {NetworkClient.connection}
+Identity: {NetworkClient.connection?.identity}";
+
+        yield return new WaitForSeconds(1f);
+
+        HandleClientConnected();
+
+        yield return new WaitForSeconds(1f);
+    }
+
 
     private void HandleClientConnected()
     {
         Debug.Log("Waiting for message relay");
         StartCoroutine(WaitForIdentity());
-        //connected = true;
+        connected = true;
         isConnecting = false; //allow retries later
+        canConnect = false;
 
     }
 
     private IEnumerator WaitForIdentity()
     {
-        while (NetworkClient.connection == null || NetworkClient.connection.identity == null)
+        if(NetworkClient.ready == false)
+            NetworkClient.Ready();
+        while (NetworkClient.isConnected == false && (NetworkClient.connection == null || NetworkClient.connection.identity == null))
         {
             Debug.Log("MessageRelay is not ready");
             yield return null;
@@ -82,18 +187,27 @@ public class ServerClient : MonoBehaviour
         messageRelay = NetworkClient.connection.identity.GetComponent<NetworkRelay>();
         Debug.Log("MessageRelay is ready: " + messageRelay);
 
-        NetworkClient.Send(new Notification { text = "connected" });
+        //yield return new WaitForSeconds(1f);
+
+        NetworkClient.Send<Notification>(new Notification { text = "connected" });
+
+        //messageRelay.CmdSendMessageToServer("connected");
+
     }
 
     //Using new unity UCP connections with mirror
     public async void JoinRelayClient(string joinCode)
     {
-        //var options = new InitializationOptions().SetEnvironmentName("production"); // or "staging"
-        await UnityServices.InitializeAsync(); 
-        
-        if (!AuthenticationService.Instance.IsSignedIn)
+        if (MatchSettings.instance.hosting == false) // if we are hosting, this will have already been handled
         {
-            await AuthenticationService.Instance.SignInAnonymouslyAsync(new SignInOptions { CreateAccount = true });
+            await UnityServices.InitializeAsync();
+
+            GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Client Signing in";
+
+            if (!AuthenticationService.Instance.IsSignedIn && MatchSettings.instance.hosting == false) //only sign in if we are not hosting
+            {
+                await AuthenticationService.Instance.SignInAnonymouslyAsync(new SignInOptions { CreateAccount = true });
+            }
         }
 
         var joinAllocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
@@ -108,102 +222,51 @@ public class ServerClient : MonoBehaviour
 
         var transport = NetworkManager.singleton.GetComponent<UtpTransport>();
 
-        NetworkManager.singleton.networkAddress = "relay"; // Bypass Mirror's check
+        if (transport == null)
+        {
+            Debug.LogError("UtpTransport not found on NetworkManager");
+            return;
+        }
 
+        NetworkManager.singleton.networkAddress = "relay"; // Bypass Mirror's check
+        
+        
         transport.useRelay = true;
         transport.ConfigureClientWithJoinCode(joinCode,
-            onSuccess: () => NetworkManager.singleton.StartClient(),
+            onSuccess: () =>
+            {
+                //NetworkManager.singleton.StopClient();
+                NetworkManager.singleton.StartClient();
+            },
             onFailure: () => Debug.LogError("Relay join failed"));
 
-        Debug.Log("Transport connected: " + transport.ClientConnected());
-        Debug.Log("Mirror connected: " + NetworkClient.isConnected);
+
+
+        //Debug.Log("Transport connected: " + transport.ClientConnected());
+        //Debug.Log("Mirror connected: " + NetworkClient.isConnected);
 
 
         //NetworkManager.singleton.networkAddress = ""; // Bypass Mirror's check
 
     }
 
-    private void Update()
+
+    IEnumerator RestartClient()
     {
-        if (!connected && !isConnecting)
-        {
-            StartCoroutine(AttemptConnection());
-            //if (connected)
-            //    HandleClientConnected();
-        }
-
-        if(connected && isConnecting)
-        {
-            HandleClientConnected();
-        }
-
-        player = NetworkClient.localPlayer;
-
-
-        //if(connected && messageRelay == null)
-        //{
-        //    StartCoroutine(WaitForIdentity());
-        //    if(messageRelay != null)
-        //        NetworkClient.Send(new Notification { text = "connected" });
-        //}
-
-        //foreach (var kvp in NetworkServer.connections)
-        //{
-        //    int connectionId = kvp.Key;
-        //    NetworkConnectionToClient conn = kvp.Value;
-        //
-        //    Debug.Log($"Client connected: ID = {connectionId}, Address = {conn.address}");
-        //}
-
-    }
-
-
-    IEnumerator AttemptConnection()
-    //void AttemptConnection()
-    {
-
-        //Just using mirror
-        //joinCode = MatchSettings.instance.JoinCode;
-        //
-        //NetworkManager.singleton.networkAddress = joinCode;
-        //NetworkManager.singleton.StartClient();
-        //Debug.Log("Connecting to " + joinCode);
-        //if(NetworkClient.isConnected)
-        //    connected = true;
-        //else
-        //    NetworkClient.Send(new Notification { text = "connected" });
-        //
-
-        while(connected == false)
-        {
-            joinCode = MatchSettings.instance.JoinCode;
-
-            isConnecting = true;
-            //joinCode = MatchSettings.instance.JoinCode;
-            //if (joinCode == "")
-            //    yield return new WaitForSeconds(5f);
-
-            JoinRelayClient(joinCode);
-            Debug.Log("Connecting via Relay with join code: " + joinCode);
-
-            yield return new WaitForSeconds(3f);
-
-            Debug.Log("Connected : " + NetworkClient.isConnected);
-            connected = NetworkClient.isConnected;
-        }
-
-        GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = $@"
-UnityServices initialized
-Signed in: {AuthenticationService.Instance.IsSignedIn}
-Join code: {joinCode}
-NetworkClient.isConnected: {NetworkClient.isConnected}
-Connection: {NetworkClient.connection}
-Identity: {NetworkClient.connection?.identity}";
+        NetworkManager.singleton.StopClient();
+        yield return null; // Wait one frame
+        NetworkManager.singleton.StartClient();
     }
 
     public void Disconnect()
     {
+        NetworkManager.singleton.StopClient();
         NetworkClient.Disconnect();
+
+        connected = false;
+        isConnecting = false;
+        //canConnect = false;
+        joinCode = "";
     }
 
 
@@ -227,7 +290,7 @@ Identity: {NetworkClient.connection?.identity}";
         return "No IPv4 address found";
     }
 
-    void OnMessageRecieved(Notification msg)
+    public void OnMessageRecieved(Notification msg)
     {
         Debug.Log("Message recieved from server " + msg.text);
         HandleMessage(msg.text);
@@ -239,11 +302,13 @@ Identity: {NetworkClient.connection?.identity}";
         //messageRelay.CmdSendMessageToServer(msg);
     }
 
-    void RecievedSettings(GameSettings settings)
+    public void RecievedSettings(GameSettings settings)
     {
+        Debug.Log("Recieved Settings");
         MatchSettings.instance.Budget = settings.Budget;
         MatchSettings.instance.MapSeed = settings.MapSeed;
-        MatchSettings.instance.size = settings.size;
+        MatchSettings.instance.size.x = settings.sizex;
+        MatchSettings.instance.size.y = settings.sizey;
         MatchSettings.instance.MountainChance = settings.MountainChance;
         MatchSettings.instance.HillChance = settings.HillChance;
         MatchSettings.instance.WaterChance = settings.WaterChance;
@@ -258,9 +323,9 @@ Identity: {NetworkClient.connection?.identity}";
 
         if (lines[0] == "disconnect")
         {
-            NetworkClient.Disconnect();
+            Disconnect();
             UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
-            Destroy(gameObject);
+            //Destroy(gameObject);
         }
         if (lines[0] == "team")
         {
@@ -287,14 +352,15 @@ Identity: {NetworkClient.connection?.identity}";
     {
         //messageRelay.CmdSpawnUnit(position, rotation, team, v);
 
-        player = NetworkClient.localPlayer;
-
+        //player = NetworkClient.localPlayer;
+        Debug.Log("LOCAL PLAYER: " + NetworkClient.localPlayer);
         if (player != null)
         {
-            var relay = player.GetComponent<NetworkRelay>();
-            if (relay != null)
+            messageRelay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
+
+            if (messageRelay != null)
             {
-                relay.CmdSpawnUnit(position, rotation, team, v);
+                messageRelay.CmdSpawnUnit(position, rotation, team, v);
             }
             else
             {
@@ -310,7 +376,7 @@ Identity: {NetworkClient.connection?.identity}";
 
     internal void DestroyUnit(GameObject unit)
     {
-        messageRelay.CmdDestroyUnit(unit);
+        player.GetComponent<NetworkRelay>().CmdDestroyUnit(unit);
     }
 }
 

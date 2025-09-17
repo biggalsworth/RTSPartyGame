@@ -14,7 +14,7 @@ public class UnitDetection : MonoBehaviour
     {
         foreach (UnitClass unit in GameObject.FindObjectsByType<UnitClass>(FindObjectsSortMode.None))
         {
-            if (unit.team != MatchSettings.instance.team)
+            if (unit.team != GetComponent<UnitClient>().team)
             {
                 unit.Mesh.SetActive(false);
                 HexManager.instance.FindHex(unit.transform.position, 2.0f).UnOccupy();

@@ -63,7 +63,9 @@ public class MainMenuUI : MonoBehaviour
     public void ReturnToMenu()
     {
         MatchSettings.instance.hosting = false;
-        Destroy(ServerHost.instance.gameObject);
+
+        //Destroy(ServerHost.instance.gameObject);
+
         SceneLoader.instance.BeginScene("MainMenu");
     }
 
@@ -72,11 +74,21 @@ public class MainMenuUI : MonoBehaviour
         MatchSettings.instance.JoinCode = GameObject.Find("JoinCodeInput").GetComponent<TMP_InputField>().text;
         MatchSettings.instance.hosting = false;
         SceneLoader.instance.BeginScene("Lobby");
+
+        if (ServerClient.instance)
+            ServerClient.instance.canConnect = true;
     }
 
     public void CreateGame()
     {
         MatchSettings.instance.hosting = true;
+
+        //if (ServerClient.instance)
+        //    ServerClient.instance.canConnect = true;
+        //
+        //if (ServerHost.instance)
+        //    ServerHost.instance.canConnect = true;
+
         SceneLoader.instance.BeginScene("Lobby");
     }
 

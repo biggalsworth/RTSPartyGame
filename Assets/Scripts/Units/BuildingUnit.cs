@@ -20,7 +20,7 @@ public class BuildingUnit : UnitClass
     // Update is called once per frame
     void Update()
     {
-        if (data.health <= 0)
+        if (base.data.health <= 0)
         {
             GameplayManager.instance.AddDestroy(gameObject);
             gameObject.SetActive(false);

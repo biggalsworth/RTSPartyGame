@@ -30,11 +30,16 @@ public class ServerHost : MonoBehaviour
     internal NetworkRelay messageRelay;
 
     int team = 0;
-    int turn;
+    int turn = 0;
 
-    private void Awake()
+    public bool connected;
+    public bool isConnecting;
+    public bool canConnect;
+    public bool canStart;
+
+    private async void Start()
     {
-        if (instance != null)
+        if (ServerHost.instance != null)
         {
             Destroy(gameObject); // Already exists, kill the duplicate
             return;
@@ -42,67 +47,205 @@ public class ServerHost : MonoBehaviour
 
         instance = this;
 
+        connected = false;
+        isConnecting = false;
+        canConnect = false;
+
+
         //JoinCode = GetLocalIPAddress();
 
-        if (MatchSettings.instance.hosting)
+        NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
+
+        if (MatchSettings.instance.hosting && !isConnecting)
         {
             DontDestroyOnLoad(gameObject);
-            StartCoroutine(LaunchRelayServer());
             //CreateServer();
+
+            GetComponent<ServerClient>().canConnect = false;
+            //NetworkClient.RegisterHandler<Notification>(GetComponent<ServerClient>().OnMessageRecieved);
+            //NetworkClient.RegisterHandler<GameSettings>(GetComponent<ServerClient>().RecievedSettings);
+
+            GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Attempting hosting";
+
+            //await LaunchRelayServer();
+
+            StartCoroutine(LaunchRelayServerCoroutine());
+
+            //StartCoroutine(LaunchRelayServer());
+        }
+        else
+        {
+            GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Not hosting, joining as client...";
         }
 
-        //messageRelay = NetworkRelay.instance;
+        messageRelay = NetworkRelay.instance;
 
     }
 
-    private void Update()
+    private void Awake()
     {
-        //if (!hosting)
-        //    CreateServer();
-
-        //if (SceneManager.GetActiveScene().buildIndex == 0)
-        //    Destroy(gameObject);
+        // Subscribe to connection events
+        //NetworkServer.OnConnectedEvent += OnClientConnected;
+        NetworkServer.OnDisconnectedEvent += OnClientDisconnected;
     }
 
+
+    private void OnDestroy()
+    {
+        // Clean up to avoid memory leaks
+        //NetworkServer.OnConnectedEvent -= OnClientConnected;
+        NetworkServer.OnDisconnectedEvent -= OnClientDisconnected;
+
+        AuthenticationService.Instance.SignOut(true);
+
+        Destroy(NetworkManager.singleton.gameObject);
+    }
+
+    private void OnServerStarted(NetworkConnectionToClient conn)
+    {
+        // Now the server is active, register handlers
+        //NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
+        //Debug.Log("Registered Notification handler");
+    }
+
+    private void OnClientConnected(NetworkConnectionToClient conn)
+    {
+        Debug.Log($"[Server] Client connected: {conn.connectionId}");
+
+        // Start welcome coroutine here
+        StartCoroutine(SendWelcomeMessage(conn));
+    }
+
+    private void OnClientDisconnected(NetworkConnectionToClient conn)
+    {
+        Debug.Log($"[Server] Client disconnected: {conn.connectionId}");
+    }
 
     //Creating connections
+    private IEnumerator LaunchRelayServerCoroutine()
+    {
+        // Async init
+        var initTask = LaunchRelayServer();
+        while (!initTask.IsCompleted) yield return null;
+    
+        if (initTask.Exception != null)
+        {
+            Debug.LogError(initTask.Exception);
+            GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Error launching server: " + initTask.Exception;
+        }
+    }
+    
+    private async Task LaunchRelayServer() // with task
+    {
+        if (!UnityServices.State.Equals(ServicesInitializationState.Initialized))
+        {
+            await UnityServices.InitializeAsync();
+        }
+    
+        if (AuthenticationService.Instance.IsSignedIn)
+        {
+            AuthenticationService.Instance.SignOut();
+        }
+
+        await Task.Delay(500);
+
+        bool isSigningIn = false;
+        if (!AuthenticationService.Instance.IsSignedIn && !isSigningIn)
+        {
+            isSigningIn = true;
+            await AuthenticationService.Instance.SignInAnonymouslyAsync(new SignInOptions { CreateAccount = true });
+        }
+        isSigningIn = false;
+    
+        // Wait until the NetworkManager exists
+        while (NetworkManager.singleton == null)
+        {
+            await Task.Yield(); // equivalent to yield return null
+        }
+    
+        GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Allocations complete";
+    
+        await Task.Delay(200); // 0.1s
+    
+        Debug.LogWarning("Creating Server");
+        isConnecting = true;
+    
+        try
+        {
+            await CreateServer(); // your server setup method
+            connected = true;
+            isConnecting = false;
+            canConnect = false;
+
+            GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Server Created - Connecting";
+
+        }
+        catch (Exception ex)
+        {
+            GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Server Failed: " + ex.Message;
+            Debug.LogError(ex);
+            isConnecting = false;
+        }
+    }
+
+    /*//enumerator solution
     private IEnumerator LaunchRelayServer()
     {
+
+        if (!UnityServices.State.Equals(ServicesInitializationState.Initialized))
+        {
+            var initTask = UnityServices.InitializeAsync();
+            while (!initTask.IsCompleted) yield return null;
+        }
+    
+        if (!AuthenticationService.Instance.IsSignedIn)
+        {
+            var SignInTask = AuthenticationService.Instance.SignInAnonymouslyAsync(new SignInOptions { CreateAccount = true });
+            while (!SignInTask.IsCompleted) yield return null;
+
+
+            if (SignInTask.Exception != null)
+            {
+                Debug.LogError(SignInTask.Exception);
+                GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Error launching server: " + SignInTask.Exception;
+            }
+
+        }
+
+        yield return new WaitUntil(() => NetworkManager.singleton != null);
+        yield return null; // Let Awake() finish to make sure the network manager exists
+        yield return null; // maybe one more frame to be safe
+
+
+        Debug.LogWarning("Creating Server");
+        isConnecting = true;
         var task = CreateServer();
         while (!task.IsCompleted) yield return null;
 
         if (task.Exception != null)
+        {
             Debug.LogError(task.Exception);
+            isConnecting = false;
+        }
         else
         {
-            Debug.Log("UnityServices initialized");
-            Debug.Log("Signed in: " + AuthenticationService.Instance.IsSignedIn);
-            Debug.Log("Join code: " + JoinCode);
-            Debug.Log("NetworkClient.isConnected: " + NetworkClient.isConnected);
-            Debug.Log("Connection: " + NetworkClient.connection);
-            Debug.Log("Identity: " + NetworkClient.connection?.identity);
+            //ServerClient.instance.canConnect = true;
 
-            GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = $@"
-UnityServices initialized
-Signed in: {AuthenticationService.Instance.IsSignedIn}
-Join code: {JoinCode}
-NetworkClient.isConnected: {NetworkClient.isConnected}
-Connection: {NetworkClient.connection}
-Identity: {NetworkClient.connection?.identity}";
+            connected = true;
+            isConnecting = false;
+            canConnect = false;
 
         }
 
     }
+    */
+
     public async Task CreateServer()
     {
         //var options = new InitializationOptions().SetEnvironmentName("production"); // or "staging"
-        await UnityServices.InitializeAsync();
+        //await UnityServices.InitializeAsync();
 
-        if (!AuthenticationService.Instance.IsSignedIn)
-        {
-            await AuthenticationService.Instance.SignInAnonymouslyAsync(new SignInOptions { CreateAccount = true });
-        }
-
+        /*
         //var allocation = await RelayService.Instance.CreateAllocationAsync(4);
         //JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
         //MatchSettings.instance.JoinCode = JoinCode;
@@ -123,9 +266,14 @@ Identity: {NetworkClient.connection?.identity}";
         //
         //Debug.Log($"Relay Join Code: {JoinCode}");
         //serverHosted = true;
-
+        */
+        
         var transport = NetworkManager.singleton.GetComponent<UtpTransport>();
         transport.useRelay = true;
+
+        var tcs = new TaskCompletionSource<string>();
+
+        GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Creating server";
 
         transport.AllocateRelayServer(
             maxPlayers: 4,
@@ -136,37 +284,25 @@ Identity: {NetworkClient.connection?.identity}";
                 Debug.Log($"Relay Join Code: {JoinCode}");
                 MatchSettings.instance.JoinCode = JoinCode;
 
-                NetworkManager.singleton.StartServer();
-                NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
+                tcs.SetResult(JoinCode);
+
+                //NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
+
+                NetworkManager.singleton.StartHost();
                 serverHosted = true;
             },
             onFailure: () =>
             {
                 Debug.LogError("Relay allocation failed");
+
+                GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Relay allocation failed";
+
+                tcs.SetException(new Exception("Relay allocation failed"));
             });
 
+
+        string joinCode = await tcs.Task;
     }
-
-
-    //async void CreateServer()
-    //{
-    //    await UnityServices.InitializeAsync();
-    //    await AuthenticationService.Instance.SignInAnonymouslyAsync();
-    //
-    //    var allocation = await RelayService.Instance.CreateAllocationAsync(4);
-    //    JoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-    //    MatchSettings.instance.JoinCode = JoinCode;
-    //
-    //    var relayServerData = AllocationUtils.ToRelayServerData(allocation, "udp");
-    //    var transport = NetworkManager.singleton.GetComponent<UnityTransport>();
-    //    transport.SetRelayServerData(relayServerData);
-    //
-    //    NetworkManager.singleton.StartHost();
-    //    NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
-    //
-    //    Debug.Log($"Relay Join Code: {JoinCode}");
-    //    serverHosted = true;
-    //}
 
     //Using mirror
     /*
@@ -237,12 +373,18 @@ Identity: {NetworkClient.connection?.identity}";
     //Gameplay logic
     public void BeginPlay()
     {
+        if (canStart == false)
+            return;
+
         NetworkManager.singleton.ServerChangeScene("PlayScene");
     }
     internal void CloseGame()
     {
+        connected = false;
+        isConnecting = false;
         NetworkServer.SendToAll<Notification>(new Notification { text = "disconnect" });
-        NetworkManager.singleton.StopHost();
+        NetworkManager.singleton.transport.Shutdown();
+        NetworkManager.singleton.StopHost(); 
 
     }
 
@@ -254,22 +396,8 @@ Identity: {NetworkClient.connection?.identity}";
 
         if (message == "connected" && MatchSettings.instance.hosting)
         {
-            //Send match settings
-            MatchSettings settings = MatchSettings.instance;
-            GameSettings newSettings = new GameSettings
-            {
-                MapSeed = settings.MapSeed,
-                Budget = settings.Budget,
-                size = settings.size,
-                MountainChance = settings.MountainChance,
-                HillChance = settings.HillChance,
-                WaterChance = settings.WaterChance
-            };
-            conn.Send<GameSettings>(newSettings);
-            conn.Send<Notification>(new Notification { text = "team\n" + team });
-            team++;
-
-            NetworkServer.SendToAll<Notification>(new Notification { text = "NEWCONNECTION"});
+            canStart = false;
+            StartCoroutine(SendWelcomeMessage(conn));
 
         }
 
@@ -285,4 +413,35 @@ Identity: {NetworkClient.connection?.identity}";
             NetworkServer.SendToAll(new Notification { text = "lost\n" + lines[1] });
         }
     }
+
+    IEnumerator SendWelcomeMessage(NetworkConnectionToClient conn)
+    {
+        yield return new WaitUntil(() => conn.isReady);
+
+        conn.Send(new Notification { text = "NEWCONNECTION" });
+
+        //NetworkServer.SendToAll<Notification>(new Notification { text = "NEWCONNECTION" });
+
+        yield return new WaitForSeconds(1f);
+
+
+        //Send match settings
+        MatchSettings settings = MatchSettings.instance;
+        GameSettings newSettings = new GameSettings
+        {
+            MapSeed = settings.MapSeed,
+            Budget = settings.Budget,
+            sizex = settings.size.x,
+            sizey = settings.size.y,
+            MountainChance = settings.MountainChance,
+            HillChance = settings.HillChance,
+            WaterChance = settings.WaterChance
+        };
+
+        conn.Send<GameSettings>(newSettings);
+        conn.Send<Notification>(new Notification { text = "team\n" + (NetworkServer.connections.Count - 1) });
+
+        canStart = true;
+    }
+
 }

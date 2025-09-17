@@ -5,6 +5,9 @@ public class UnitClient : NetworkBehaviour
 {
     public int prefabID;
 
+    [SyncVar]
+    public int team;
+
     [SyncVar(hook = nameof(OnPositionChanged))]
     public Vector3 targetHexPosition;
     public override void OnStartClient()

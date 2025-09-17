@@ -1,3 +1,4 @@
+using Mirror;
 using NUnit.Framework.Internal;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
+using static UnityEngine.UI.CanvasScaler;
 
 public class PlayerInteractions : MonoBehaviour
 {
@@ -172,12 +174,15 @@ public class PlayerInteractions : MonoBehaviour
                     if (currBuild != null && currBuild.GetComponent<BuildingClass>().cost <= budget && HexManager.instance.HexDistance(teamTile, HexManager.instance.WorldToHex(hit.point, 2f)) <= MatchSettings.instance.size.x / 4)
                     {
                         budget -= currBuild.GetComponent<BuildingClass>().cost;
+
                         GameObject newObj = Instantiate(currBuild.GetComponent<BuildingClass>().building, HexManager.instance.SnapToHexGrid(hit.point, 2f), buildRot, HexManager.instance.FindHex(hit.point, 2f).Tile.transform);
                         
-                        
+                        //ServerClient.instance.SpawnUnit(HexManager.instance.SnapToHexGrid(hit.point, 2f), buildRot, team, currBuild.GetComponent<BuildingClass>().building.GetComponent<UnitClient>().prefabID);
+                       
                         if(newObj.GetComponent<UnitClass>())
                         {
                             newObj.GetComponent<UnitClass>().team = team;
+                            newObj.GetComponent<UnitClient>().team = team;
                             newObj.transform.parent = null;
                         }
                         else if(newObj.GetComponent<BuildingClass>())
@@ -186,6 +191,11 @@ public class PlayerInteractions : MonoBehaviour
                         }
 
                         GameplayManager.instance.NewUnit(newObj);
+                        //if (NetworkClient.active && !NetworkServer.active)
+                        //{
+                        //    ServerClient.instance.SpawnUnit(HexManager.instance.SnapToHexGrid(hit.point, 2f), buildRot, team, currBuild.GetComponent<BuildingClass>().building.GetComponent<UnitClient>().prefabID); // Send to server
+                        //}
+
 
                         ClearSelection();
                         selected = null;
@@ -193,13 +203,11 @@ public class PlayerInteractions : MonoBehaviour
                         building = false;
                         buildRot = Quaternion.identity;
                     }
-
                     if (selected != null)
                     {
                         if(selected.GetComponent<UnitClass>())
                             selected.GetComponent<UnitClass>().Selected(false);
                     }
-
                     selected = null;
 
                     return;
