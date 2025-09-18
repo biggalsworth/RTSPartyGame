@@ -135,7 +135,7 @@ public class ServerClient : MonoBehaviour
 
             Debug.Log("Connecting via Relay with join code: " + joinCode);
 
-            yield return new WaitForSeconds(2f);
+            yield return new WaitForSeconds(0.5f);
 
             Debug.Log("Connected : " + NetworkClient.isConnected);
             connected = NetworkClient.isConnected;
