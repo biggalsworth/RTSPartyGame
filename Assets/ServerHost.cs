@@ -85,7 +85,7 @@ public class ServerHost : MonoBehaviour
     private void Awake()
     {
         // Subscribe to connection events
-        //NetworkServer.OnConnectedEvent += OnClientConnected;
+        NetworkServer.OnConnectedEvent += OnClientConnected;
         NetworkServer.OnDisconnectedEvent += OnClientDisconnected;
     }
 
@@ -93,7 +93,7 @@ public class ServerHost : MonoBehaviour
     private void OnDestroy()
     {
         // Clean up to avoid memory leaks
-        //NetworkServer.OnConnectedEvent -= OnClientConnected;
+        NetworkServer.OnConnectedEvent -= OnClientConnected;
         NetworkServer.OnDisconnectedEvent -= OnClientDisconnected;
 
         AuthenticationService.Instance.SignOut(true);
@@ -111,8 +111,7 @@ public class ServerHost : MonoBehaviour
     {
         Debug.Log($"[Server] Client connected: {conn.connectionId}");
 
-        // Start welcome coroutine here
-        StartCoroutine(SendWelcomeMessage(conn));
+        canStart = false;
     }
 
     private void OnClientDisconnected(NetworkConnectionToClient conn)
@@ -365,6 +364,12 @@ public class ServerHost : MonoBehaviour
 
         }
 
+        if (lines[0] == "ready")
+        {
+            if (canStart == false)
+                canStart = true;
+        }
+
         if (lines[0] == "disconnect" && MatchSettings.instance.hosting)
         {
             if (HexManager.instance == null)
@@ -404,6 +409,8 @@ public class ServerHost : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
 
+        conn.Send<Notification>(new Notification { text = "team\n" + (NetworkServer.connections.Count - 1) });
+
         //Send match settings
         MatchSettings settings = MatchSettings.instance;
         GameSettings newSettings = new GameSettings
@@ -418,9 +425,8 @@ public class ServerHost : MonoBehaviour
         };
 
         conn.Send<GameSettings>(newSettings);
-        conn.Send<Notification>(new Notification { text = "team\n" + (NetworkServer.connections.Count - 1) });
 
-        canStart = true;
+        //canStart = true;
     }
 
 }

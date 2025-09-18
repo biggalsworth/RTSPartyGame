@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LobbyUI : MonoBehaviour
 {
@@ -23,9 +24,13 @@ public class LobbyUI : MonoBehaviour
         if(MatchSettings.instance.hosting)
         {
             Connections.text = ServerHost.instance.GetClientCount() + " players connected";
+
+            GameObject.Find("StartButton").GetComponent<Button>().interactable = ServerHost.instance.canStart;
         }
         else
         {
+            GameObject.Find("StartButton").SetActive(false);
+
             Connections.text = "Waiting for game to start";
         }
     }

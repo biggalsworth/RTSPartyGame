@@ -135,10 +135,14 @@ public class ServerClient : MonoBehaviour
 
             Debug.Log("Connecting via Relay with join code: " + joinCode);
 
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(2f);
 
             Debug.Log("Connected : " + NetworkClient.isConnected);
             connected = NetworkClient.isConnected;
+
+            if(connected)
+                NetworkClient.Send<Notification>(new Notification { text = "connected" });
+
 
         }
 
@@ -156,7 +160,7 @@ NetworkClient.isConnected: {NetworkClient.isConnected}
 Connection: {NetworkClient.connection}
 Identity: {NetworkClient.connection?.identity}";
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
         HandleClientConnected();
 
@@ -189,7 +193,7 @@ Identity: {NetworkClient.connection?.identity}";
 
         //yield return new WaitForSeconds(1f);
 
-        NetworkClient.Send<Notification>(new Notification { text = "connected" });
+        //NetworkClient.Send<Notification>(new Notification { text = "connected" });
 
         //messageRelay.CmdSendMessageToServer("connected");
 
@@ -308,6 +312,8 @@ Identity: {NetworkClient.connection?.identity}";
         MatchSettings.instance.MountainChance = settings.MountainChance;
         MatchSettings.instance.HillChance = settings.HillChance;
         MatchSettings.instance.WaterChance = settings.WaterChance;
+
+        MessageServer("ready");
     }
 
 
