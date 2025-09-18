@@ -76,7 +76,7 @@ public class HexGenerator : MonoBehaviour
 
                 if (q == Mathf.RoundToInt(gridWidth / 2) && r == 0)
                 {
-                    hexGO = Instantiate(flatModel, pos, TeamB.transform.rotation, transform);
+                    hexGO = Instantiate(flatModel, pos, TeamA.transform.rotation, transform);
 
                     BaseA = Instantiate(TeamA, pos, TeamA.transform.rotation, hexGO.transform);
                     BaseA.transform.localScale = Vector3.one;

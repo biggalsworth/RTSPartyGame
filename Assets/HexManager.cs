@@ -145,4 +145,15 @@ public class HexManager : MonoBehaviour
 
         return true;
     }
+
+    public GameObject GetBase(int team)
+    {
+        BaseLogic[] bases = GameObject.FindObjectsByType<BaseLogic>(FindObjectsSortMode.None);
+        foreach(BaseLogic b in bases)
+        {
+            if (b.gameObject.GetComponent<UnitClass>().team == team)
+                return b.gameObject;
+        }
+        return null;
+    }
 }

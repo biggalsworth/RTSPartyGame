@@ -242,6 +242,7 @@ MonoBehaviour:
   Mesh: {fileID: 4880100216784731709}
   cost: 0
   team: 1
+  standable: 1
   moveDistance: 0
   movesLeft: 0
   maxHealth: 20
@@ -273,4 +274,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3d420c840ee2743a1208e66b5b7a50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectionRange: 0
+  detectionRange: 2

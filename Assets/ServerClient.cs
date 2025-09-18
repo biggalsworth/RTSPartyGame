@@ -19,6 +19,7 @@ using Unity.Networking.Transport.Relay;
 using TMPro;
 using Utp;
 using Unity.Services.Matchmaker.Models;
+using System.Threading.Tasks;
 
 
 public class ServerClient : MonoBehaviour
@@ -97,10 +98,9 @@ public class ServerClient : MonoBehaviour
 
     }
 
-
+    #region Connect
 
     IEnumerator AttemptConnection()
-    //void AttemptConnection()
     {
         yield return new WaitForSeconds(1f);
 
@@ -215,11 +215,6 @@ Identity: {NetworkClient.connection?.identity}";
 
         Debug.Log("ConnectionData: " + Convert.ToBase64String(joinAllocation.ConnectionData));
 
-        //var transport = NetworkManager.singleton.GetComponent<UtpTransport>();
-        //transport.SetRelayServerData(relayServerData);
-        //
-        //NetworkManager.singleton.StartClient();
-
         var transport = NetworkManager.singleton.GetComponent<UtpTransport>();
 
         if (transport == null)
@@ -240,26 +235,26 @@ Identity: {NetworkClient.connection?.identity}";
             },
             onFailure: () => Debug.LogError("Relay join failed"));
 
-
-
-        //Debug.Log("Transport connected: " + transport.ClientConnected());
-        //Debug.Log("Mirror connected: " + NetworkClient.isConnected);
-
-
-        //NetworkManager.singleton.networkAddress = ""; // Bypass Mirror's check
-
     }
 
+    #endregion
 
-    IEnumerator RestartClient()
-    {
-        NetworkManager.singleton.StopClient();
-        yield return null; // Wait one frame
-        NetworkManager.singleton.StartClient();
-    }
 
     public void Disconnect()
     {
+        StartCoroutine(BeginDisconnect());
+    }
+
+    private IEnumerator BeginDisconnect()
+    {
+        MessageServer("disconnect\n" + MatchSettings.instance.team);
+        MessageServer("lost\n" + MatchSettings.instance.team);
+        HexManager.instance.GetBase(MatchSettings.instance.team).SetActive(false);
+
+        yield return null;
+        yield return null;
+        yield return new WaitForSeconds(0.1f);
+
         NetworkManager.singleton.StopClient();
         NetworkClient.Disconnect();
 
@@ -298,7 +293,8 @@ Identity: {NetworkClient.connection?.identity}";
 
     public void MessageServer(string msg)
     {
-        NetworkClient.Send(new Notification { text = msg });
+        NetworkClient.Send<Notification>(new Notification { text = msg });
+
         //messageRelay.CmdSendMessageToServer(msg);
     }
 

@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -26,12 +27,13 @@ public class GameUIManager : MonoBehaviour
 
     public void Update()
     {
-        if (GameObject.FindWithTag("Player") == null)
+        if (GameObject.FindWithTag("Player") == null || GameObject.FindWithTag("Player").activeSelf == false)
         {
             if(ServerClient.instance != null)
             {
                 WinLosePanel.SetActive(true);
-                WinLose.text = "Team " + (ServerClient.instance.GameState - 1) + " has lost!";
+                //WinLose.text = "Team " + (ServerClient.instance.GameState - 1) + " has lost!";
+                WinLose.text = "Team " + (ServerClient.instance.GameState) + " has lost!";
             }
             return;
         }
@@ -73,8 +75,21 @@ public class GameUIManager : MonoBehaviour
 
     public void LeaveGame()
     {
-        ServerHost.instance.CloseGame();
+        StartCoroutine(Leaving());
+    }
+
+    IEnumerator Leaving()
+    {
         ServerClient.instance.Disconnect();
+
+        yield return null;
+        yield return null;
+        yield return new WaitForSeconds(0.2f);
+
+        ServerHost.instance.CloseGame();
+
+        yield return new WaitForSeconds(0.2f);
+
         Destroy(ServerHost.instance.gameObject);
         SceneManager.LoadScene(0);
     }

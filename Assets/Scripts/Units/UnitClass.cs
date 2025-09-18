@@ -55,7 +55,9 @@ public class UnitClass : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         //agent.isStopped = true;
-        team = GetComponent<UnitClient>().team;
+
+        if(gameObject.GetComponent<UnitClient>()) //if we arent a unit client, dont grab it || for the base buildings mainly
+            team = GetComponent<UnitClient>().team;
 
         health = maxHealth;
         data = new CombatData(team, health, defenceRating, offenceRating, damage, attackRange);
@@ -67,8 +69,10 @@ public class UnitClass : MonoBehaviour
         //movesLeft = 0;
         busy = false;
 
-        if(team == MatchSettings.instance.team)
-            Mesh.SetActive(true);
+        Mesh.SetActive(true);
+
+        if (team != MatchSettings.instance.team)
+            Mesh.SetActive(false);
 
         BaseStart();
     }

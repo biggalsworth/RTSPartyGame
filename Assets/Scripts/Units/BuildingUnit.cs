@@ -15,6 +15,8 @@ public class BuildingUnit : UnitClass
         HexManager.instance.Hexes[HexPosition].UnOccupy();
         HexManager.instance.Hexes[HexPosition].Build(gameObject);
         HexManager.instance.Hexes[HexPosition].standable = standable;
+
+        Mesh.SetActive(true);
     }
 
     // Update is called once per frame

@@ -100,7 +100,6 @@ public class ServerHost : MonoBehaviour
 
         Destroy(NetworkManager.singleton.gameObject);
     }
-
     private void OnServerStarted(NetworkConnectionToClient conn)
     {
         // Now the server is active, register handlers
@@ -121,7 +120,8 @@ public class ServerHost : MonoBehaviour
         Debug.Log($"[Server] Client disconnected: {conn.connectionId}");
     }
 
-    //Creating connections
+    #region Creating connections
+
     private IEnumerator LaunchRelayServerCoroutine()
     {
         // Async init
@@ -178,6 +178,8 @@ public class ServerHost : MonoBehaviour
             canConnect = false;
 
             GameObject.Find("NetworkInfo").GetComponent<TextMeshProUGUI>().text = "Server Created - Connecting";
+
+            MatchSettings.instance.JoinCode = JoinCode;
 
         }
         catch (Exception ex)
@@ -282,7 +284,6 @@ public class ServerHost : MonoBehaviour
             {
                 JoinCode = joinCode;
                 Debug.Log($"Relay Join Code: {JoinCode}");
-                MatchSettings.instance.JoinCode = JoinCode;
 
                 tcs.SetResult(JoinCode);
 
@@ -303,49 +304,12 @@ public class ServerHost : MonoBehaviour
 
         string joinCode = await tcs.Task;
     }
-
-    //Using mirror
-    /*
-    void CreateServer()
-    {
-
-        JoinCode = GetLocalIPAddress();
-        //JoinCode = "localHost";
-        MatchSettings.instance.JoinCode = JoinCode;
-
-        //string joinCode = GenerateJoinCode();
-        //codeToIP[JoinCode] = ip;
-
-        NetworkManager.singleton.networkAddress = JoinCode;
-        NetworkManager.singleton.StartHost();
-        NetworkServer.RegisterHandler<Notification>(OnChatMessageReceived);
-
-        Debug.Log($"Join Code: {JoinCode}");
-
-        serverHosted = true;
-    }
-    */
-
-    string GetLocalIPAddress()
-    {
-        using (var webClient = new System.Net.WebClient())
-        {
-            return webClient.DownloadString("https://api.ipify.org");
-        }
-
-        //var host = Dns.GetHostEntry(Dns.GetHostName());
-        //foreach (var ip in host.AddressList)
-        //{
-        //    if (ip.AddressFamily == AddressFamily.InterNetwork)
-        //        return ip.ToString();
-        //}
-        //return "No IPv4 address found";
-    }
-
     public static string LookupIP(string code)
     {
         return codeToIP.ContainsKey(code) ? codeToIP[code] : null;
     }
+
+    #endregion
 
     internal int GetClientCount()
     {
@@ -382,10 +346,10 @@ public class ServerHost : MonoBehaviour
     {
         connected = false;
         isConnecting = false;
+        NetworkServer.SendToAll<Notification>(new Notification { text = "lost\n" + MatchSettings.instance.team });
         NetworkServer.SendToAll<Notification>(new Notification { text = "disconnect" });
         NetworkManager.singleton.transport.Shutdown();
         NetworkManager.singleton.StopHost(); 
-
     }
 
     public void HandleMessage(string message, NetworkConnectionToClient conn)
@@ -399,6 +363,21 @@ public class ServerHost : MonoBehaviour
             canStart = false;
             StartCoroutine(SendWelcomeMessage(conn));
 
+        }
+
+        if (lines[0] == "disconnect" && MatchSettings.instance.hosting)
+        {
+            if (HexManager.instance == null)
+                return;
+
+            if (lines[1] == "0")
+            {
+                HexManager.instance.GetBase(0).SetActive(false);
+            }
+            else if(lines[1] == "1")
+            {
+                HexManager.instance.GetBase(1).SetActive(false);
+            }
         }
 
         if (lines[0] == "turn")
