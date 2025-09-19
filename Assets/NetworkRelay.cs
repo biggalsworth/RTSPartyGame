@@ -88,4 +88,50 @@ public class NetworkRelay : NetworkBehaviour
     {
         NetworkServer.Destroy(unit);
     }
+
+    internal void ApplyMovements(int turn)
+    {
+        foreach (var obj in GameObject.FindObjectsByType<UnitClient>(FindObjectsSortMode.None))
+        {
+            if (obj.GetComponent<UnitClass>().team != turn)
+                continue;
+
+            Vector3 finalPos = HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f);
+            uint netId = obj.GetComponent<NetworkIdentity>().netId;
+
+            CmdUpdateUnitPosition(netId, finalPos);
+        }
+    }
+
+    [Command]
+    public void CmdUpdateUnitPosition(uint netId, Vector3 newPos)
+    {
+        if (NetworkServer.spawned.TryGetValue(netId, out NetworkIdentity identity))
+        {
+            UnitClient unit = identity.GetComponent<UnitClient>();
+            if (unit != null)
+            {
+                unit.targetHexPosition = newPos; // Server sets SyncVar
+                unit.GetComponent<UnitClass>()?.NewTurn();
+            }
+        }
+    }
+
+    //[Command]
+    //public void CmdApplyMovements(int turn)
+    //{
+    //    foreach (var obj in GameObject.FindObjectsByType<UnitClient>(FindObjectsSortMode.None))
+    //    {
+    //        //if (obj.GetComponent<UnitClass>() && obj.GetComponent<UnitClass>().team == turn)
+    //        //{
+    //            obj.ApplyUnitMovement(obj.GetComponent<NetworkIdentity>().netId, HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f));
+    //            obj.GetComponent<UnitClass>().NewTurn();
+    //        //}
+    //        //else if (obj.GetComponent<BuildingClass>() && obj.GetComponent<BuildingClass>().team == turn)
+    //        //{
+    //        //    obj.ApplyServerMovement(HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f));
+    //        //}
+    //    }
+    //
+    //}
 }

@@ -8,7 +8,7 @@ public class IconManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if(MatchSettings.instance.team == 0)
+        if(transform.root.GetComponent<UnitClass>().team == 0)
         {
             GetComponent<MeshRenderer>().material = TeamA;
         }

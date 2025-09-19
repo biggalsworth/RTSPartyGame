@@ -71,7 +71,7 @@ public class CombatData
 
 
         // Step 4: Optional counterattack if opponent survives
-        if (opponent.health > 0)
+        if (opponent.health > 0 && HexManager.instance.HexDistance(owner.transform.position, opponent.owner.transform.position) <= attackRange)
         {
             int counterStrengthDiff = opponent.offenceRating - defenceRating;
             double counterMultiplier = Math.Pow(1.05, counterStrengthDiff);

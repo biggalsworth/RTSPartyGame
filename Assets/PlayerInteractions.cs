@@ -50,7 +50,6 @@ public class PlayerInteractions : MonoBehaviour
         //ground_layer = LayerMask.NameToLayer("Ground");
         ground_layer = LayerMask.GetMask("Ground");
         controls = Controls.instance.input;
-
         controls.Mouse.Click.performed += CheckClick;
         controls.Player.Rotate.performed += RotateBuild;
 
@@ -67,6 +66,23 @@ public class PlayerInteractions : MonoBehaviour
         if(team == 1)
             teamTile.x = -teamTile.x;
 
+    }
+
+    private void OnEnable()
+    {
+        if(Controls.instance)
+        {
+            controls = Controls.instance.input;
+            controls.Mouse.Click.performed += CheckClick;
+            controls.Player.Rotate.performed += RotateBuild;
+        }
+    }
+
+    private void OnDisable()
+    {
+        controls = Controls.instance.input;
+        controls.Mouse.Click.performed -= CheckClick;
+        controls.Player.Rotate.performed -= RotateBuild;
     }
 
     void ClearSelection()
@@ -158,7 +174,8 @@ public class PlayerInteractions : MonoBehaviour
 
     void CheckClick(InputAction.CallbackContext context)
     {
-        if(Input.GetMouseButton(0) && EventSystem.current.IsPointerOverGameObject() == false)
+        //if(Input.GetMouseButton(0) && EventSystem.current.IsPointerOverGameObject() == false)
+        if(EventSystem.current.IsPointerOverGameObject() == false)
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 

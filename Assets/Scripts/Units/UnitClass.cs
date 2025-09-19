@@ -21,7 +21,7 @@ public class UnitClass : MonoBehaviour
 
     public GameObject Mesh;
 
-    internal bool busy = false;
+    public bool busy = false;
 
     public int cost;
 
@@ -83,8 +83,8 @@ public class UnitClass : MonoBehaviour
 
     internal void BaseStart()
     {
+        transform.position = HexManager.instance.SnapToHexGrid(transform.position, 2f);
         HexPosition = HexManager.instance.WorldToHex(transform.position, 2f);
-        transform.position = HexManager.instance.HexToWorld(HexPosition, 2f);
 
         //HexManager.instance.ForceMove(HexPosition, gameObject);
         HexManager.instance.Hexes[HexPosition].Occupy(gameObject);
@@ -172,6 +172,14 @@ public class UnitClass : MonoBehaviour
     {
         attacked = false;
         movesLeft = moveDistance;
+
+        busy = false;
+        if (team == MatchSettings.instance.team)
+            Mesh.SetActive(true);
+
+        HexPosition = HexManager.instance.WorldToHex(transform.position, 2f);
+        HexManager.instance.Hexes[HexPosition].Occupy(gameObject);
+    
     }
 
     public void Move(Vector3 dest, int cost)

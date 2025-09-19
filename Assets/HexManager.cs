@@ -50,6 +50,13 @@ public class HexManager : MonoBehaviour
 
     }
 
+    internal int HexDistance(Vector3 a, Vector3 b)
+    {
+        return HexDistance(WorldToHex(a, 2f), WorldToHex(b, 2f));
+
+
+    }
+
     //Get the neighbour tiles
     public List<Vector2> GetNeighbors(Vector2 coord)
     {

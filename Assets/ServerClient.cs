@@ -87,7 +87,7 @@ public class ServerClient : MonoBehaviour
             //    HandleClientConnected();
         }
 
-        if (NetworkClient.isConnected && !isConnecting)
+        if (NetworkClient.isConnected && !isConnecting && NetworkClient.ready == false)
         {
             player = NetworkClient.localPlayer;
             if (NetworkClient.ready == false)
@@ -95,6 +95,9 @@ public class ServerClient : MonoBehaviour
             if (messageRelay == null)
                 messageRelay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
         }
+
+        if(messageRelay != NetworkClient.localPlayer.GetComponent<NetworkRelay>())
+            messageRelay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
 
     }
 
@@ -108,11 +111,11 @@ public class ServerClient : MonoBehaviour
         {
             connected = NetworkClient.isConnected;
 
-            if (!connected)
-            {
-                Debug.Log("Disconnecting");
-                NetworkClient.Disconnect();
-            }
+            //if (!connected)
+            //{
+            //    Debug.Log("Disconnecting");
+            //    NetworkClient.Disconnect();
+            //}
 
             joinCode = MatchSettings.instance.JoinCode;
 
@@ -338,11 +341,23 @@ Identity: {NetworkClient.connection?.identity}";
         {
             GameObject.Find("TurnText").GetComponent<TextMeshProUGUI>().text = "Turn: " + lines[1];
             GameplayManager.instance.turn = int.Parse(lines[1]);
+
             foreach(UnitClass unit in GameObject.FindObjectsByType<UnitClass>(FindObjectsSortMode.None))
             {
                 if (unit.team != MatchSettings.instance.team)
                     unit.Mesh.SetActive(false);
+                else
+                    unit.Mesh.SetActive(true);
             }
+
+            foreach (var obj in GameObject.FindObjectsByType<UnitClient>(FindObjectsSortMode.None))
+            {
+                if (obj.GetComponent<UnitClass>() && obj.GetComponent<UnitClass>().team == MatchSettings.instance.team)
+                {
+                    obj.gameObject.GetComponent<UnitClass>().NewTurn();
+                }
+            }
+
         }
         if (lines[0] == "lost")
         {

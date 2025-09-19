@@ -388,6 +388,7 @@ public class ServerHost : MonoBehaviour
         if (lines[0] == "turn")
         {
             //NetworkServer.SendToAll<Notification>(new Notification { text = "turn\n" + lines[1] });
+            //ServerClient.instance.messageRelay.CmdApplyMovements();
             NetworkServer.SendToAll(new Notification { text = "turn\n" + lines[1] });
             turn = int.Parse(lines[1]);
         }

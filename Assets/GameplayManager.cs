@@ -97,8 +97,7 @@ public class GameplayManager : MonoBehaviour
             else
             {
                 // Non-host client -> send command to server
-                NetworkRelay relay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
-                relay.CmdSpawnUnit(spawnPos, spawnRot, team, prefabID);
+                NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnUnit(spawnPos, spawnRot, team, prefabID);
             }
 
             Destroy(unit);
@@ -115,18 +114,23 @@ public class GameplayManager : MonoBehaviour
         DestroyQueue.Clear(); // Reset for next turn
 
 
-        foreach (var obj in GameObject.FindObjectsByType<UnitClient>(FindObjectsSortMode.None))
-        {
-            if (obj.GetComponent<UnitClass>() && obj.GetComponent<UnitClass>().team == turn)
-            {
-                obj.gameObject.GetComponent<UnitClient>().ApplyTurnUpdate(HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f));
-                obj.gameObject.GetComponent<UnitClass>().NewTurn();
-            }
-            if(obj.GetComponent<BuildingClass>() && obj.GetComponent<BuildingClass>().team == turn)
-            {
-                obj.gameObject.GetComponent<UnitClient>().ApplyTurnUpdate(HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f));
-            }
-        }
+        //foreach (var obj in GameObject.FindObjectsByType<UnitClient>(FindObjectsSortMode.None))
+        //{
+        //    if (obj.GetComponent<UnitClass>() && obj.GetComponent<UnitClass>().team == turn)
+        //    {
+        //        obj.gameObject.GetComponent<UnitClient>().ApplyTurnUpdate(HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f));
+        //        obj.gameObject.GetComponent<UnitClass>().NewTurn();
+        //    }
+        //    if(obj.GetComponent<BuildingClass>() && obj.GetComponent<BuildingClass>().team == turn)
+        //    {
+        //        obj.gameObject.GetComponent<UnitClient>().ApplyTurnUpdate(HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f));
+        //    }
+        //}
+
+        //ServerClient.instance.messageRelay.ApplyMovements(turn);
+
+        NetworkRelay relay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
+        relay.ApplyMovements(turn);
 
         turn = turn == 0 ? 1 : 0;
 
