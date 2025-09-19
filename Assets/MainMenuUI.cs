@@ -10,6 +10,8 @@ public class MainMenuUI : MonoBehaviour
 
     public TextMeshProUGUI WarningText;
 
+    public TMP_Dropdown region;
+
     public TMP_Dropdown size;
 
     public TMP_Dropdown mount;
@@ -72,6 +74,29 @@ public class MainMenuUI : MonoBehaviour
     public void JoinGame()
     {
         MatchSettings.instance.JoinCode = GameObject.Find("JoinCodeInput").GetComponent<TMP_InputField>().text;
+
+        if (region)
+        {
+            switch (region.value)
+            {
+                case 0:
+                    MatchSettings.instance.RegionID = "europe-central2";
+                    break;
+
+                case 1:
+                    MatchSettings.instance.RegionID = "europe-north1";
+                    break;
+
+                case 2:
+                    MatchSettings.instance.RegionID = "us-central1";
+                    break;
+
+                case 3:
+                    MatchSettings.instance.RegionID = "southamerica-east1";
+                    break;
+            }
+        }
+
         MatchSettings.instance.hosting = false;
         SceneLoader.instance.BeginScene("Lobby");
 
@@ -119,6 +144,28 @@ public class MainMenuUI : MonoBehaviour
             MatchSettings.instance.SetMountains(mount.value);
             MatchSettings.instance.SetHills(hill.value);
             MatchSettings.instance.SetWater(water.value);
+        }
+
+        if(region)
+        {
+            switch(region.value)
+            {
+                case 0:
+                    MatchSettings.instance.RegionID = "europe-central2";
+                    break;
+
+                case 1:
+                    MatchSettings.instance.RegionID = "europe-north1";
+                    break;
+
+                case 2:
+                    MatchSettings.instance.RegionID = "us-central1";
+                    break;
+
+                case 3:
+                    MatchSettings.instance.RegionID = "southamerica-east1";
+                    break;
+            }
         }
 
         MatchSettings.instance.hosting = true;

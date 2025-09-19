@@ -8,6 +8,7 @@ public class MatchSettings : MonoBehaviour
     public bool hosting;
 
     public string JoinCode;
+    public string RegionID = "europe-central2";
 
     public int team;
 

@@ -156,6 +156,7 @@ public class ServerClient : MonoBehaviour
 UnityServices initialized
 Signed in: {AuthenticationService.Instance.IsSignedIn}
 Join code: {joinCode}
+Region: {MatchSettings.instance.RegionID}
 NetworkClient.isConnected: {NetworkClient.isConnected}
 Connection: {NetworkClient.connection}
 Identity: {NetworkClient.connection?.identity}";

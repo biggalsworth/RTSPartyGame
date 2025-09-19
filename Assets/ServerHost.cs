@@ -278,7 +278,7 @@ public class ServerHost : MonoBehaviour
 
         transport.AllocateRelayServer(
             maxPlayers: 4,
-            regionId: "europe-central2", // or your preferred region
+            regionId: MatchSettings.instance.RegionID, // or your preferred region
             onSuccess: (joinCode) =>
             {
                 JoinCode = joinCode;
