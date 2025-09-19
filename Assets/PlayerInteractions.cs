@@ -22,7 +22,7 @@ public class PlayerInteractions : MonoBehaviour
     public bool busy;
 
     bool building = false;
-    GameObject currBuild = null;
+    internal GameObject currBuild = null;
     Quaternion buildRot = new Quaternion(0,0,0,0);
 
     Vector2 teamTile;

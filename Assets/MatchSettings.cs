@@ -72,18 +72,23 @@ public class MatchSettings : MonoBehaviour
     {
         switch (value)
         {
-            //None
+            //Tiny
             case 0:
-                size = new Vector2(30, 30);
+                size = new Vector2(10, 10);
                 break;
 
-            //Low
+            //Small
             case 1:
-                size = new Vector2(60, 60);
+                size = new Vector2(30, 30);
                 break;
 
             //Medium
             case 2:
+                size = new Vector2(60, 60);
+                break;
+
+            //Large
+            case 3:
                 size = new Vector2(100, 100);
                 break;
         }

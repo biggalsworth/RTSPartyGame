@@ -63,10 +63,14 @@ public class UnitClass : MonoBehaviour
         data = new CombatData(team, health, defenceRating, offenceRating, damage, attackRange);
         data.owner = gameObject;
 
-
-        movesLeft = moveDistance;
+        movesLeft = 0;
         attacked = true;
-        //movesLeft = 0;
+
+        // TEST VALUES //
+        //movesLeft = moveDistance;
+        //attacked = false;
+
+
         busy = false;
 
         Mesh.SetActive(true);

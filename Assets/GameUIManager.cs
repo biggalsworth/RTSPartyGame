@@ -7,6 +7,8 @@ public class GameUIManager : MonoBehaviour
 {
     PlayerInteractions playerInfo;
 
+    [Header("Game Info")]
+    public GameObject BuildingControls;
     public GameObject WinLosePanel;
     public TextMeshProUGUI WinLose;
     public TextMeshProUGUI playerFunds;
@@ -61,8 +63,10 @@ public class GameUIManager : MonoBehaviour
                 DeleteUnitButton.SetActive(false);
         }
 
+        BuildingControls.SetActive(playerInfo.currBuild != null);
 
-        if(Input.GetKeyDown(KeyCode.Escape) && GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("OpenBuilds"))
+
+        if (Input.GetKeyDown(KeyCode.Escape) && GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).IsName("OpenBuilds"))
         {
             GetComponent<Animator>().Play("CloseBuilds");
         }
