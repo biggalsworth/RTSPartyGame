@@ -1,10 +1,11 @@
+using UnityEngine;
+using System;
+
 using Mirror;
 using NUnit.Framework.Internal;
-using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using Unity.VisualScripting.FullSerializer.Internal;
-using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
@@ -192,7 +193,8 @@ public class PlayerInteractions : MonoBehaviour
                     {
                         budget -= currBuild.GetComponent<BuildingClass>().cost;
 
-                        GameObject newObj = Instantiate(currBuild.GetComponent<BuildingClass>().building, HexManager.instance.SnapToHexGrid(hit.point, 2f), buildRot, HexManager.instance.FindHex(hit.point, 2f).Tile.transform);
+                        //GameObject newObj = Instantiate(currBuild.GetComponent<BuildingClass>().building, HexManager.instance.SnapToHexGrid(hit.point, buildRot, HexManager.instance.FindHex(hit.point, 2f).Tile.transform);
+                        GameObject newObj = Instantiate(currBuild.GetComponent<BuildingClass>().building, HexManager.instance.SnapToHexGrid(new Vector3(hit.point.x, 1, hit.point.z), 2f), buildRot, HexManager.instance.FindHex(hit.point, 2f).Tile.transform);
                         
                         //ServerClient.instance.SpawnUnit(HexManager.instance.SnapToHexGrid(hit.point, 2f), buildRot, team, currBuild.GetComponent<BuildingClass>().building.GetComponent<UnitClient>().prefabID);
                        
@@ -434,10 +436,14 @@ public class PlayerInteractions : MonoBehaviour
                                 MoveIcon.SetActive(false);
                             }
 
-                            path.Clear();
-                            reachablePath.Clear();
+                            if(path != null && reachablePath != null)
+                            {
+                                path.Clear();
+                                reachablePath.Clear();
+                                pathLine.positionCount = path.Count;
+                            }
+
                             //pathLine.positionCount = 0;// = false;
-                            pathLine.positionCount = path.Count;
                             pathLine.enabled = false;
                             //MoveIcon.SetActive(false);
                         }

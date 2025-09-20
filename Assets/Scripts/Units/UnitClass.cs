@@ -29,7 +29,7 @@ public class UnitClass : MonoBehaviour
 
     public bool standable = true;
     public int moveDistance = 1;
-    private bool attacked;
+    public bool attacked;
     public int movesLeft;
     bool stopMove = false;
 
@@ -42,7 +42,8 @@ public class UnitClass : MonoBehaviour
     public int attackRange = 1;
     public int damage = 1;
 
-    internal CombatData data;
+    internal UnitStats data;
+    internal CombatLogic BattleLogic;
 
     NavMeshAgent agent;
 
@@ -60,8 +61,15 @@ public class UnitClass : MonoBehaviour
             team = GetComponent<UnitClient>().team;
 
         health = maxHealth;
-        data = new CombatData(team, health, defenceRating, offenceRating, damage, attackRange);
-        data.owner = gameObject;
+        GetComponent<UnitClient>().data = new UnitStats { team = this.team, health = this.health, 
+            defenceRating = this.defenceRating, offenceRating = this.offenceRating, 
+            damage = this.damage, attackRange = this.attackRange };
+
+        data = GetComponent<UnitClient>().data;
+
+        //data.owner = gameObject;
+
+        BattleLogic = new CombatLogic(this);
 
         movesLeft = 0;
         attacked = true;
@@ -75,10 +83,20 @@ public class UnitClass : MonoBehaviour
 
         Mesh.SetActive(true);
 
-        if (team != MatchSettings.instance.team)
-            Mesh.SetActive(false);
 
         BaseStart();
+        StartCoroutine(FrameDelayStart());
+    }
+
+    public IEnumerator FrameDelayStart()
+    {
+        yield return null;
+
+        if (team != MatchSettings.instance.team)
+            Mesh.SetActive(false);
+        else
+            Mesh.SetActive(true);
+
     }
 
     internal void BaseStart()
@@ -107,17 +125,18 @@ public class UnitClass : MonoBehaviour
         //    GameObject.FindWithTag("Player").GetComponent<PlayerInteractions>().busy = true;
 
         UnitUpdate();
-        if(data != null)
-        {
+        //if(data != null)
+        //{
             health = data.health;
 
             if (data.health <= 0)
             {
                 Debug.Log(gameObject.name + " IS DEAD");
                 GameplayManager.instance.AddDestroy(gameObject);
-                gameObject.SetActive(false);
+                //gameObject.SetActive(false);
+                Mesh.SetActive(false);
             }
-        }
+        //}
     }
             
     private void OnDisable()
@@ -176,6 +195,8 @@ public class UnitClass : MonoBehaviour
         busy = false;
         if (team == MatchSettings.instance.team)
             Mesh.SetActive(true);
+
+        HexManager.instance.Hexes[HexPosition].UnOccupy();
 
         HexPosition = HexManager.instance.WorldToHex(transform.position, 2f);
         HexManager.instance.Hexes[HexPosition].Occupy(gameObject);
@@ -345,13 +366,16 @@ public class UnitClass : MonoBehaviour
 
         attacked = true;
 
-        if (HexManager.instance.HexDistance(HexPosition, target.HexPosition) <= attackRange)
+        if (HexManager.instance.HexDistance(transform.position, target.transform.position) <= attackRange)
         {
             Debug.Log("Can Attack");
 
             target.StartCoroutine(target.LookAt(transform.position));
             StartCoroutine(LookAt(target.transform.position));
-            data.SimulateBattle(target.data);
+
+            //data.SimulateBattle(target.data);
+
+            BattleLogic.SimulateBattle(target);
             return true;
         }
         else
@@ -360,22 +384,23 @@ public class UnitClass : MonoBehaviour
         return false;
 
     }
-    internal void Battle(BuildingClass target)
-    {
-        Debug.Log("Attackingggg");
-        Debug.Log(team + " | " + target.team);
-        if (target.team == team)
-            return;
 
-        if (HexManager.instance.HexDistance(HexPosition, target.HexPosition) <= attackRange)
-        {
-            Debug.Log("Can Attack");
-            data.SimulateBattle(target.data);
-        }
-        else
-            Debug.Log("Target outside attack range");
-
-    }
+    //internal void Battle(BuildingClass target)
+    //{
+    //    Debug.Log("Attackingggg");
+    //    Debug.Log(team + " | " + target.team);
+    //    if (target.team == team)
+    //        return;
+    //
+    //    if (HexManager.instance.HexDistance(HexPosition, target.HexPosition) <= attackRange)
+    //    {
+    //        Debug.Log("Can Attack");
+    //        data.SimulateBattle(target.data);
+    //    }
+    //    else
+    //        Debug.Log("Target outside attack range");
+    //
+    //}
 
     public IEnumerator LookAt(Vector3 target)
     {

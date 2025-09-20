@@ -93,29 +93,68 @@ public class NetworkRelay : NetworkBehaviour
     {
         foreach (var obj in GameObject.FindObjectsByType<UnitClient>(FindObjectsSortMode.None))
         {
-            if (obj.GetComponent<UnitClass>().team != turn)
-                continue;
-
-            Vector3 finalPos = HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f);
             uint netId = obj.GetComponent<NetworkIdentity>().netId;
 
+            if (obj.GetComponent<UnitClass>() && obj.GetComponent<UnitClass>().data != null)
+                CmdUpdateUnitStats(netId, obj.GetComponent<UnitClass>().data.health);
+
+            if (obj.GetComponent<UnitClass>().team != turn)
+            {
+                //send an invalid position so we dont update units positions
+                CmdUpdateUnitPosition(netId, new Vector3(-1f, -1f, -1f));
+                continue;
+            }
+
+            //If the unit is the locals client, update to our position and update other clients to use our stats for our units
+            Vector3 finalPos = HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f);
             CmdUpdateUnitPosition(netId, finalPos);
+
         }
     }
 
     [Command]
     public void CmdUpdateUnitPosition(uint netId, Vector3 newPos)
     {
-        if (NetworkServer.spawned.TryGetValue(netId, out NetworkIdentity identity))
+        if (newPos != new Vector3(-1f, -1f, -1f))
         {
-            UnitClient unit = identity.GetComponent<UnitClient>();
-            if (unit != null)
+            if (NetworkServer.spawned.TryGetValue(netId, out NetworkIdentity identity))
             {
-                unit.targetHexPosition = newPos; // Server sets SyncVar
-                unit.GetComponent<UnitClass>()?.NewTurn();
+                UnitClient unit = identity.GetComponent<UnitClient>();
+                if (unit != null)
+                {
+                    unit.targetHexPosition = newPos; // Server sets SyncVar
+                    unit.GetComponent<UnitClass>()?.NewTurn();
+                }
+            }
+        }
+        //dont change units positions but do tell them its a new turn.
+        if(newPos == new Vector3(-1f, -1f, -1f))
+        {
+            if (NetworkServer.spawned.TryGetValue(netId, out NetworkIdentity identity))
+            {
+                UnitClient unit = identity.GetComponent<UnitClient>();
+                if (unit != null)
+                {
+                    unit.GetComponent<UnitClass>()?.NewTurn();
+                }
             }
         }
     }
+
+    [Command]
+    public void CmdUpdateUnitStats(uint netId, int health)
+    {
+        if (NetworkServer.spawned.TryGetValue(netId, out NetworkIdentity identity))
+        {
+            UnitClass unit = identity.GetComponent<UnitClass>();
+            if (unit != null)
+            {
+                unit.health = health;
+                unit.data.health = health;
+            }
+        }
+    }
+
 
     //[Command]
     //public void CmdApplyMovements(int turn)

@@ -48,6 +48,11 @@ public class GameplayManager : MonoBehaviour
         {
             return;
         }
+
+
+        NetworkRelay relay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
+
+
         List<GameObject> workingQueue = SpawnQueue;
         //foreach (GameObject unit in SpawnQueue)
         for (int i = SpawnQueue.Count - 1; i >= 0; i--)
@@ -106,9 +111,11 @@ public class GameplayManager : MonoBehaviour
 
         SpawnQueue.Clear(); // Reset for next turn
 
-        foreach (GameObject unit in DestroyQueue)
+        for(int i = 0; i < DestroyQueue.Count; i--)
         {
-            ServerClient.instance.DestroyUnit(unit); // Send to server
+            GameObject unit = SpawnQueue[i];
+            //ServerClient.instance.DestroyUnit(unit); // Send to server
+            relay.CmdDestroyUnit(unit);
         }
 
         DestroyQueue.Clear(); // Reset for next turn
@@ -129,7 +136,6 @@ public class GameplayManager : MonoBehaviour
 
         //ServerClient.instance.messageRelay.ApplyMovements(turn);
 
-        NetworkRelay relay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
         relay.ApplyMovements(turn);
 
         turn = turn == 0 ? 1 : 0;
