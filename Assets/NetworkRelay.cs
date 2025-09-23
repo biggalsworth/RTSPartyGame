@@ -83,11 +83,43 @@ public class NetworkRelay : NetworkBehaviour
         Debug.Log($"[Server] Spawned unit: {unit.name} at {spawnPos}");
     }
 
-    [Command]
-    internal void CmdDestroyUnit(GameObject unit)
+    [Command(requiresAuthority = false)]
+    internal void CmdDestroyUnit(GameObject obj)
     {
-        NetworkServer.Destroy(unit);
+        uint netId = obj.GetComponent<NetworkIdentity>().netId;
+
+        if (NetworkServer.spawned.TryGetValue(netId, out NetworkIdentity identity))
+        {
+            GameObject unit = identity.gameObject;
+
+            // optional: cleanup hex before destroy
+            UnitClass u = unit.GetComponent<UnitClass>();
+            if (u != null)
+            {
+                RpcUnoccupyHex(u.HexPosition);
+            }
+
+            Debug.Log($"[Server] Destroying {unit.name}, netId={unit.GetComponent<NetworkIdentity>().netId}");
+
+            NetworkServer.Destroy(unit);
+        }
+
+        //UnitClass u = unit.GetComponent<UnitClass>();
+        //if (u != null)
+        //{
+        //    // Tell all clients to clean up the hex
+        //    RpcUnoccupyHex(u.HexPosition);
+        //}
+        //
+        //NetworkServer.Destroy(unit);
     }
+
+    [ClientRpc]
+    void RpcUnoccupyHex(Vector2 hexPos)
+    {
+        HexManager.instance.Hexes[hexPos].UnOccupy();
+    }
+
 
     internal void ApplyMovements(int turn)
     {
@@ -95,8 +127,8 @@ public class NetworkRelay : NetworkBehaviour
         {
             uint netId = obj.GetComponent<NetworkIdentity>().netId;
 
-            if (obj.GetComponent<UnitClass>() && obj.GetComponent<UnitClass>().data != null)
-                CmdUpdateUnitStats(netId, obj.GetComponent<UnitClass>().data.health);
+            //if (obj.GetComponent<UnitClass>() && !obj.GetComponent<UnitClass>().data.Equals(default(UnitStats)))
+            //    CmdUpdateUnitStats(netId, obj.GetComponent<UnitClass>().data.health);
 
             if (obj.GetComponent<UnitClass>().team != turn)
             {
@@ -108,6 +140,18 @@ public class NetworkRelay : NetworkBehaviour
             //If the unit is the locals client, update to our position and update other clients to use our stats for our units
             Vector3 finalPos = HexManager.instance.SnapToHexGrid(obj.transform.position, 2.0f);
             CmdUpdateUnitPosition(netId, finalPos);
+
+        }
+    }
+
+    internal void ApplyStats()
+    {
+        foreach (var obj in GameObject.FindObjectsByType<UnitClient>(FindObjectsSortMode.None))
+        {
+            uint netId = obj.GetComponent<NetworkIdentity>().netId;
+
+            if (obj.GetComponent<UnitClass>() && !obj.GetComponent<UnitClass>().data.Equals(default(UnitStats)))
+                CmdUpdateUnitStats(netId, obj.GetComponent<UnitClass>().data.health);
 
         }
     }
@@ -146,13 +190,35 @@ public class NetworkRelay : NetworkBehaviour
     {
         if (NetworkServer.spawned.TryGetValue(netId, out NetworkIdentity identity))
         {
-            UnitClass unit = identity.GetComponent<UnitClass>();
-            if (unit != null)
+            UnitClass unitClass = identity.GetComponent<UnitClass>();
+            UnitClient unitClient = identity.GetComponent<UnitClient>();
+
+            if (unitClient != null && unitClass != null)
             {
-                unit.health = health;
-                unit.data.health = health;
+                unitClass.health = health;
+
+                UnitStats updatedStats = unitClient.data;
+                updatedStats.health = health;
+
+                unitClient.data = updatedStats; // This triggers SyncVar hook
             }
+
         }
+    }
+
+    [Command]
+    public void CmdSpawnBases(int team, Vector3 pos)
+    {
+        GameObject Base = Instantiate(prefabs[prefabs.Count - (1 + team)], pos, prefabs[prefabs.Count - (1 + team)].transform.rotation);
+
+        //BaseA.transform.localScale = Vector3.one;
+
+        NetworkServer.Spawn(Base);
+
+        if (team == 0)
+            NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\nHex_{Mathf.RoundToInt(MatchSettings.instance.size.x / 2)}_0\n0" });
+        if (team == 1)
+            NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\nHex_{-Mathf.RoundToInt(MatchSettings.instance.size.x / 2)}_0\n1" });
     }
 
 

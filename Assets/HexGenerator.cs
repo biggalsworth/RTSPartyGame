@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
+using System.Collections;
+using Mirror.BouncyCastle.Utilities.Encoders;
 
 public static class TerrainUtils
 {
@@ -58,8 +61,9 @@ public class HexGenerator : MonoBehaviour
     public GameObject waterModel;
 
     //called from hex manager
-    internal void GenerateHexGrid()
+    internal IEnumerator GenerateHexGrid()
     {
+
         randomiser = new System.Random(MatchSettings.instance.MapSeed);
 
         baseRarityMap = TerrainUtils.GetBaseRarityMap(mountainChance, waterChance, hillChance);
@@ -71,26 +75,36 @@ public class HexGenerator : MonoBehaviour
             for (int r = r1; r <= r2; r++)
             {
                 Vector3 pos = HexToWorld(new Vector2(q, r), hexSize);
-                GameObject hexGO;
+                GameObject hexGO = null;
 
 
                 if (q == Mathf.RoundToInt(gridWidth / 2) && r == 0)
                 {
                     hexGO = Instantiate(flatModel, pos, TeamA.transform.rotation, transform);
-
-                    BaseA = Instantiate(TeamA, pos, TeamA.transform.rotation, hexGO.transform);
-                    BaseA.transform.localScale = Vector3.one;
-
+                    //
+                    //BaseA = Instantiate(TeamA, pos, TeamA.transform.rotation, hexGO.transform);
+                    //BaseA.transform.localScale = Vector3.one;
+                    //
                     GenerateTile(hexGO, new Vector2(q, r), pos, true);
+
+                    //if(MatchSettings.instance.hosting)
+                    //    NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(0, pos);
+
+                    //GameplayManager.instance.SpawnQueue.Add(BaseA);
                 }
                 else if (q == -Mathf.RoundToInt(gridWidth / 2) && r == 0)
                 {
                     hexGO = Instantiate(flatModel, pos, TeamB.transform.rotation, transform);
 
-                    BaseB = Instantiate(TeamB, pos, TeamB.transform.rotation, hexGO.transform);
-                    BaseB.transform.localScale = Vector3.one;
+                    //BaseB = Instantiate(TeamB, pos, TeamB.transform.rotation, hexGO.transform);
+                    //BaseB.transform.localScale = Vector3.one;
 
                     GenerateTile(hexGO, new Vector2(q, r), pos, true);
+
+                    //if (MatchSettings.instance.hosting)
+                    //    NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(1, pos);
+
+                    //GameplayManager.instance.SpawnQueue.Add(BaseB);
                 }
                 else
                 {
@@ -98,11 +112,35 @@ public class HexGenerator : MonoBehaviour
                     //generate tile data
                     GenerateTile(hexGO, new Vector2(q, r), pos);
                 }
-                hexGO.name = $"Hex_{q}_{r}";
-
-
+                if(hexGO != null)
+                    hexGO.name = $"Hex_{q}_{r}";
             }
         }
+
+        Debug.Log("Finished Generation");
+
+        while (NetworkClient.localPlayer == null)
+            yield return null;
+
+        if (MatchSettings.instance.hosting)
+        {
+
+            Vector3 pos = HexToWorld(new Vector2(Mathf.RoundToInt(gridWidth / 2), 0), hexSize);
+
+            if (MatchSettings.instance.hosting)
+                NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(0, pos);
+
+            yield return null;
+            yield return null;
+
+            pos = HexToWorld(new Vector2(-Mathf.RoundToInt(gridWidth / 2), 0), hexSize);
+
+            if (MatchSettings.instance.hosting)
+                NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(1, pos);
+
+        }
+
+
     }
 
     //This will do the checks for the tile terrain type

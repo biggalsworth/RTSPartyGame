@@ -186,6 +186,9 @@ public class CombatLogic
 
         // Step 3: Apply damage to opponent
         opponent.health -= finalDamage;
+        //opponentUnit.data.health -= finalDamage;
+        opponentUnit.data = opponent;
+
 
         yield return new WaitForSeconds(1f);
 
@@ -197,7 +200,6 @@ public class CombatLogic
 
         unit.attacking = false;
         opponentUnit.defending = false;
-
 
 
         // Step 4: Optional counterattack if opponent survives
@@ -221,7 +223,11 @@ public class CombatLogic
                 opponentUnit.GetComponent<UnitAudio>().PlayBattle();
             }
             catch { }
+
+            //update health
             owner.health -= counterDamage;
+            unit.data = owner;
+
             yield return new WaitForSeconds(1f);
 
 

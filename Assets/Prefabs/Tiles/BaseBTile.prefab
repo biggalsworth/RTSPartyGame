@@ -103,10 +103,11 @@ GameObject:
   - component: {fileID: 8608186200800633075}
   - component: {fileID: 1450121033567282710}
   - component: {fileID: 6590487863117716974}
-  - component: {fileID: 5444565349892209658}
   - component: {fileID: -5760495014620082250}
   - component: {fileID: 2841111441452367465}
   - component: {fileID: 6437976118940285977}
+  - component: {fileID: 7027021628267404129}
+  - component: {fileID: 3874885208096521353}
   m_Layer: 3
   m_Name: BaseBTile
   m_TagString: Untagged
@@ -205,27 +206,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 2534964839176971238, guid: 69a519d533f472c47b8f092a146cae50, type: 3}
---- !u!114 &5444565349892209658
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6962102088543910787}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c03bc327c344e6940b53676eaa61a005, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Model: {fileID: 4880100216784731709}
-  building: {fileID: 0}
-  cost: 0
-  team: 1
-  MaxHealth: 20
-  defenceRating: 5
-  offenceRating: 2
-  damage: 0
-  attackRange: 3
 --- !u!114 &-5760495014620082250
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -240,12 +220,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UnitName: Team B
   Mesh: {fileID: 4880100216784731709}
+  busy: 0
   cost: 0
   team: 1
   standable: 1
   moveDistance: 0
+  attacked: 0
   movesLeft: 0
   maxHealth: 20
+  health: 0
   defenceRating: 10
   offenceRating: 2
   attackRange: 3
@@ -275,3 +258,38 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   detectionRange: 2
+--- !u!114 &7027021628267404129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6962102088543910787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 0
+  _assetId: 3644705092
+  serverOnly: 0
+  visibility: 0
+  hasSpawned: 0
+--- !u!114 &3874885208096521353
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6962102088543910787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7a0b9c466581854f91831123561265d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  prefabID: 6
+  team: 1
+  targetHexPosition: {x: 0, y: 0, z: 0}

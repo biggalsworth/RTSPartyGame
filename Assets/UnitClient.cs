@@ -15,6 +15,20 @@ public class UnitClient : NetworkBehaviour
     [SyncVar(hook = nameof(OnPositionChanged))]
     public Vector3 targetHexPosition;
 
+    private void Awake()
+    {
+        UnitClass unit = GetComponent<UnitClass>();
+        data = new UnitStats
+        {
+            team = unit.team,
+            health = unit.maxHealth,
+            defenceRating = unit.defenceRating,
+            offenceRating = unit.offenceRating,
+            damage = unit.damage,
+            attackRange = unit.attackRange
+        };
+    }
+
     public override void OnStartClient()
     {
         Debug.Log($"[Client] {gameObject.name} spawned!");

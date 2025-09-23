@@ -26,7 +26,7 @@ public class HexManager : MonoBehaviour
             generator.hillChance = MatchSettings.instance.HillChance;
             generator.waterChance = MatchSettings.instance.WaterChance;
 
-            generator.GenerateHexGrid();
+            StartCoroutine(generator.GenerateHexGrid());
         //}
     }
 

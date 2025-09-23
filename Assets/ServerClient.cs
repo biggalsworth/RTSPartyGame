@@ -20,6 +20,7 @@ using TMPro;
 using Utp;
 using Unity.Services.Matchmaker.Models;
 using System.Threading.Tasks;
+using System.Drawing;
 
 
 public class ServerClient : MonoBehaviour
@@ -363,6 +364,38 @@ Identity: {NetworkClient.connection?.identity}";
         {
             GameObject.FindWithTag("Player").SetActive(false);
             GameState = int.Parse(lines[1]);
+        }
+
+
+        if (lines[0] == "assigned")
+        {
+            Debug.Log("WE HAVE A BASE");
+            foreach(BaseLogic found in GameObject.FindObjectsByType<BaseLogic>(FindObjectsSortMode.None))
+            {
+                if(found.GetComponent<UnitClass>().team == 0 && lines[2] == "0")
+                {
+                    //Vector2 tilePos = new Vector2(Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
+                    //HexManager.instance.Hexes.TryGetValue(tilePos, out TileClass BaseTile);//.Tile.transform.position;
+
+                    GameObject TileObj = GameObject.Find(lines[1]);
+
+                    found.transform.parent = TileObj.transform;
+                    found.transform.localScale = Vector3.one;
+                    found.transform.localPosition = Vector3.zero;
+
+                }
+                else if (found.GetComponent<UnitClass>().team == 1 && lines[2] == "1")
+                {
+                    GameObject TileObj = GameObject.Find(lines[1]);
+
+                    found.transform.parent = TileObj.transform;
+                    found.transform.localScale = Vector3.one;
+                    found.transform.localPosition = Vector3.zero;
+                }
+            }
+
+            //GameObject BaseTile = GameObject.Find(lines[1]);
+
         }
     }
 

@@ -37,7 +37,7 @@ public class ServerHost : MonoBehaviour
     public bool canConnect;
     public bool canStart;
 
-    private async void Start()
+    private void Start()
     {
         if (ServerHost.instance != null)
         {

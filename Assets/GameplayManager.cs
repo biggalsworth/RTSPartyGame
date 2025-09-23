@@ -111,11 +111,13 @@ public class GameplayManager : MonoBehaviour
 
         SpawnQueue.Clear(); // Reset for next turn
 
-        for(int i = 0; i < DestroyQueue.Count; i--)
+        for(int i = 0; i < DestroyQueue.Count; i++)
         {
-            GameObject unit = SpawnQueue[i];
+            //GameObject unit = SpawnQueue[i];
+            GameObject unit = DestroyQueue[i];
+
             //ServerClient.instance.DestroyUnit(unit); // Send to server
-            relay.CmdDestroyUnit(unit);
+            NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdDestroyUnit(unit);
         }
 
         DestroyQueue.Clear(); // Reset for next turn
@@ -137,6 +139,7 @@ public class GameplayManager : MonoBehaviour
         //ServerClient.instance.messageRelay.ApplyMovements(turn);
 
         relay.ApplyMovements(turn);
+        relay.ApplyStats();
 
         turn = turn == 0 ? 1 : 0;
 

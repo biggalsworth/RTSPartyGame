@@ -34,7 +34,7 @@ public class UnitClass : MonoBehaviour
     bool stopMove = false;
 
     public int maxHealth = 10;
-    internal int health;
+    public int health;
 
     public int defenceRating = 2;
     public int offenceRating = 4;
@@ -48,6 +48,7 @@ public class UnitClass : MonoBehaviour
     NavMeshAgent agent;
 
     internal Vector2 HexPosition;
+    internal bool dead = false;
     internal bool defending = false;
     internal bool attacking = false;
 
@@ -60,12 +61,6 @@ public class UnitClass : MonoBehaviour
         if(gameObject.GetComponent<UnitClient>()) //if we arent a unit client, dont grab it || for the base buildings mainly
             team = GetComponent<UnitClient>().team;
 
-        health = maxHealth;
-        GetComponent<UnitClient>().data = new UnitStats { team = this.team, health = this.health, 
-            defenceRating = this.defenceRating, offenceRating = this.offenceRating, 
-            damage = this.damage, attackRange = this.attackRange };
-
-        data = GetComponent<UnitClient>().data;
 
         //data.owner = gameObject;
 
@@ -80,6 +75,7 @@ public class UnitClass : MonoBehaviour
 
 
         busy = false;
+        dead = false;
 
         Mesh.SetActive(true);
 
@@ -91,6 +87,19 @@ public class UnitClass : MonoBehaviour
     public IEnumerator FrameDelayStart()
     {
         yield return null;
+
+        health = maxHealth;
+        //GetComponent<UnitClient>().data = new UnitStats
+        //{
+        //    team = this.team,
+        //    health = this.health,
+        //    defenceRating = this.defenceRating,
+        //    offenceRating = this.offenceRating,
+        //    damage = this.damage,
+        //    attackRange = this.attackRange
+        //};
+
+        data = GetComponent<UnitClient>().data;
 
         if (team != MatchSettings.instance.team)
             Mesh.SetActive(false);
@@ -124,29 +133,37 @@ public class UnitClass : MonoBehaviour
         //if (GameObject.FindWithTag("Player") && GameObject.FindWithTag("Player").GetComponent<PlayerInteractions>().busy == false && busy)
         //    GameObject.FindWithTag("Player").GetComponent<PlayerInteractions>().busy = true;
 
-        UnitUpdate();
-        //if(data != null)
-        //{
-            health = data.health;
+        //if (!data.Equals(default(UnitStats)))
 
-            if (data.health <= 0)
+        health = data.health;
+
+        UnitUpdate();
+
+        if(!data.Equals(default(UnitStats)))
+        {
+            if (data.health <= 0 && !dead)
             {
                 Debug.Log(gameObject.name + " IS DEAD");
                 GameplayManager.instance.AddDestroy(gameObject);
                 //gameObject.SetActive(false);
                 Mesh.SetActive(false);
+                dead = true;
             }
-        //}
+            if(dead && Mesh.activeSelf)
+                Mesh.SetActive(false);
+
+        }
     }
             
     private void OnDisable()
     {
-        HexManager.instance.Hexes[HexPosition].UnOccupy();
+        HexManager.instance.Hexes[HexManager.instance.WorldToHex(transform.position, 2f)].UnOccupy();
         UnitDestroy();
     }
+
     void OnDestroy()
     {
-        HexManager.instance.Hexes[HexPosition].UnOccupy();
+        HexManager.instance.Hexes[HexManager.instance.WorldToHex(transform.position, 2f)].UnOccupy();
         UnitDestroy();
     }
 

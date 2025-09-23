@@ -4,7 +4,6 @@ using UnityEngine.AI;
 
 public class BuildingUnit : UnitClass
 {
-
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public override void UnitStart()
     {
@@ -22,7 +21,10 @@ public class BuildingUnit : UnitClass
     // Update is called once per frame
     void Update()
     {
-        if (base.data.health <= 0)
+        if (!data.Equals(default(UnitStats)))
+            health = data.health;
+
+        if (!data.Equals(default(UnitStats)) && data.health <= 0)
         {
             GameplayManager.instance.AddDestroy(gameObject);
             gameObject.SetActive(false);

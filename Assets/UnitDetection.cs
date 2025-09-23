@@ -14,7 +14,7 @@ public class UnitDetection : MonoBehaviour
     {
         foreach (UnitClass unit in GameObject.FindObjectsByType<UnitClass>(FindObjectsSortMode.None))
         {
-            if (unit.team != MatchSettings.instance.team)
+            if (unit.team != MatchSettings.instance.team && currUnit.dead == false)
             {
                 unit.Mesh.SetActive(false);
                 HexManager.instance.FindHex(unit.transform.position, 2.0f).UnOccupy();
@@ -67,7 +67,7 @@ public class UnitDetection : MonoBehaviour
                 if (currCheck.GetComponent<UnitClass>())
                     currUnit = currCheck.GetComponent<UnitClass>();
 
-                if (currUnit != null && currUnit.team != GetComponent<UnitClass>().team)
+                if (currUnit != null && currUnit.team != GetComponent<UnitClass>().team && currUnit.dead == false)
                 {
                     if (currUnit.Mesh.activeSelf == false)
                     {
@@ -111,6 +111,10 @@ public class UnitDetection : MonoBehaviour
             seenUnits = currentlySeen;
         }
         catch { };
+
+
+        if (GetComponent<UnitClass>().team == MatchSettings.instance.team && GetComponent<UnitClass>().dead == false)
+            GetComponent<UnitClass>().Mesh.SetActive(true);
     }
 
 }

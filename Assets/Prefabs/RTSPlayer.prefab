@@ -54,6 +54,8 @@ MonoBehaviour:
   - {fileID: 7700630783922528423, guid: 9a35368b977426d4f883c3d24384dfe6, type: 3}
   - {fileID: 1757292316981527970, guid: d38bd8fcc42d7544c902bddaa5e4b6c2, type: 3}
   - {fileID: 1757292316981527970, guid: ae1399eca25ac0c449999bf75f9d9857, type: 3}
+  - {fileID: 6962102088543910787, guid: 58061d9c03d9a044da711ad3dba665f2, type: 3}
+  - {fileID: 4133550388743764043, guid: f1079d4d108cf244381b67b77b5ca1a5, type: 3}
 --- !u!114 &7803585332936887397
 MonoBehaviour:
   m_ObjectHideFlags: 0
