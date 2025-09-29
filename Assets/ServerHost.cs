@@ -345,6 +345,11 @@ public class ServerHost : MonoBehaviour
     {
         connected = false;
         isConnecting = false;
+        foreach (NetworkIdentity unit in NetworkServer.spawned.Values)
+        {
+            NetworkServer.Destroy(unit.gameObject);
+        }
+
         NetworkServer.SendToAll<Notification>(new Notification { text = "lost\n" + MatchSettings.instance.team });
         NetworkServer.SendToAll<Notification>(new Notification { text = "disconnect" });
         NetworkManager.singleton.transport.Shutdown();

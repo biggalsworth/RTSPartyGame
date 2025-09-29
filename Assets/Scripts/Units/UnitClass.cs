@@ -220,11 +220,13 @@ public class UnitClass : MonoBehaviour
         HexManager.instance.Hexes[HexPosition].UnOccupy();
 
         //make sure they are all snapped to the nearest hex on next turn
-        transform.position = HexManager.instance.SnapToHexGrid(transform.position, 2f);
 
         HexPosition = HexManager.instance.WorldToHex(transform.position, 2f);
+
+        transform.position = HexManager.instance.HexToWorld(HexPosition, 2f);
+
         HexManager.instance.Hexes[HexPosition].Occupy(gameObject);
-    
+
     }
 
     public void Move(Vector3 dest, int cost)
