@@ -52,7 +52,7 @@ public class GameUIManager : MonoBehaviour
 
                 }
                 else
-                    WinLose.text = "Team " + (ServerClient.instance.GameState) + " has lost!";
+                    WinLose.text = "Team " + (ServerClient.instance.GameState - 10) + " has lost!";
             }
             return;
         }
