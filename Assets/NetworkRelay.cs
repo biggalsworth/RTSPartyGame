@@ -207,7 +207,7 @@ public class NetworkRelay : NetworkBehaviour
     }
 
     [Command]
-    public void CmdSpawnBases(int team, Vector3 pos)
+    public void CmdSpawnBases(int team, string name, Vector3 pos)
     {
         GameObject Base = Instantiate(prefabs[prefabs.Count - (1 + team)], pos, prefabs[prefabs.Count - (1 + team)].transform.rotation);
 
@@ -216,9 +216,11 @@ public class NetworkRelay : NetworkBehaviour
         NetworkServer.Spawn(Base);
 
         if (team == 0)
-            NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\nHex_{Mathf.RoundToInt(MatchSettings.instance.size.x / 2)}_0\n0" });
+            NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\n"+name+"\n0" });
+        //NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\nHex_{Mathf.RoundToInt(MatchSettings.instance.size.x / 2)}_0\n0" });
         if (team == 1)
-            NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\nHex_{-Mathf.RoundToInt(MatchSettings.instance.size.x / 2)}_0\n1" });
+            NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\n"+name+"\n1" });
+            //NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\nHex_{-Mathf.RoundToInt(MatchSettings.instance.size.x / 2)}_0\n1" });
     }
 
 

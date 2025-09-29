@@ -374,10 +374,10 @@ Identity: {NetworkClient.connection?.identity}";
             {
                 if(found.GetComponent<UnitClass>().team == 0 && lines[2] == "0")
                 {
-                    Vector2 tilePos = new Vector2(Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
-                    GameObject TileObj = HexManager.instance.Hexes[tilePos].Tile;
+                    //Vector2 tilePos = new Vector2(Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
+                    //GameObject TileObj = HexManager.instance.Hexes[tilePos].Tile;
 
-                    //GameObject TileObj = found.gameObject;
+                    GameObject TileObj = GameObject.Find(lines[1]);
 
                     found.transform.parent = TileObj.transform;
                     found.transform.localScale = Vector3.one;
@@ -386,10 +386,10 @@ Identity: {NetworkClient.connection?.identity}";
                 }
                 else if (found.GetComponent<UnitClass>().team == 1 && lines[2] == "1")
                 {
-                    Vector2 tilePos = new Vector2(-Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
-                    GameObject TileObj = HexManager.instance.Hexes[tilePos].Tile;
+                    //Vector2 tilePos = new Vector2(-Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
+                    //GameObject TileObj = HexManager.instance.Hexes[tilePos].Tile;
 
-                    //GameObject TileObj = found.gameObject;
+                    GameObject TileObj = GameObject.Find(lines[1]);
 
                     found.transform.parent = TileObj.transform;
                     found.transform.localScale = Vector3.one;

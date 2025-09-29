@@ -126,19 +126,19 @@ public class HexGenerator : MonoBehaviour
 
         if (MatchSettings.instance.hosting)
         {
-
-            Vector3 pos = HexToWorld(new Vector2(Mathf.RoundToInt(gridWidth / 2), 0), hexSize);
+            Vector3 pos = HexToWorld(new Vector2(Mathf.RoundToInt(gridWidth / 2), 0), 2f);
 
             if (MatchSettings.instance.hosting)
-                NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(0, pos);
+                NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(0, $"Hex_{Mathf.RoundToInt(gridWidth / 2)}_{0}", pos);
 
             yield return null;
             yield return null;
 
-            pos = HexToWorld(new Vector2(-Mathf.RoundToInt(gridWidth / 2), 0), hexSize);
+            pos = HexToWorld(new Vector2(-Mathf.RoundToInt(gridWidth / 2), 0), 2f);
 
             if (MatchSettings.instance.hosting)
-                NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(1, pos);
+                NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(1, $"Hex_{-Mathf.RoundToInt(gridWidth / 2)}_{0}", pos);
+                //NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(1, pos);
 
         }
 
