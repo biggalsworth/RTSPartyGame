@@ -98,7 +98,7 @@ public class ServerHost : MonoBehaviour
 
         AuthenticationService.Instance.SignOut(true);
 
-        Destroy(NetworkManager.singleton.gameObject);
+        //Destroy(NetworkManager.singleton.gameObject);
     }
     private void OnServerStarted(NetworkConnectionToClient conn)
     {
@@ -401,9 +401,9 @@ public class ServerHost : MonoBehaviour
         if (lines[0] == "lost")
         {
             if(lines[1] == "0")
-                NetworkServer.SendToAll(new Notification { text = "lost\n" + 10 });
+                NetworkServer.SendToAll(new Notification { text = "lost\n10" });
             else if(lines[1] == "1")
-                NetworkServer.SendToAll(new Notification { text = "lost\n" + 11 });
+                NetworkServer.SendToAll(new Notification { text = "lost\n11"});
 
 
         }

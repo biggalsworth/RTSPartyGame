@@ -119,6 +119,8 @@ public class HexGenerator : MonoBehaviour
 
         Debug.Log("Finished Generation");
 
+        yield return null;
+
         while (NetworkClient.localPlayer == null)
             yield return null;
 
