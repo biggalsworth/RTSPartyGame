@@ -395,7 +395,12 @@ public class ServerHost : MonoBehaviour
 
         if (lines[0] == "lost")
         {
-            NetworkServer.SendToAll(new Notification { text = "lost\n" + lines[1] });
+            if(lines[1] == "0")
+                NetworkServer.SendToAll(new Notification { text = "lost\n" + 10 });
+            else if(lines[1] == "1")
+                NetworkServer.SendToAll(new Notification { text = "lost\n" + 11 });
+
+
         }
     }
 

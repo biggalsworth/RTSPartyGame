@@ -163,6 +163,7 @@ public class UnitClass : MonoBehaviour
 
     void OnDestroy()
     {
+        HexManager.instance.Hexes[HexPosition].UnOccupy();
         HexManager.instance.Hexes[HexManager.instance.WorldToHex(transform.position, 2f)].UnOccupy();
         UnitDestroy();
     }

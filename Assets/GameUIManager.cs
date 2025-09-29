@@ -35,7 +35,24 @@ public class GameUIManager : MonoBehaviour
             {
                 WinLosePanel.SetActive(true);
                 //WinLose.text = "Team " + (ServerClient.instance.GameState - 1) + " has lost!";
-                WinLose.text = "Team " + (ServerClient.instance.GameState) + " has lost!";
+                if(ServerClient.instance.GameState == 10)
+                {
+                    if(MatchSettings.instance.team == 0)
+                        WinLose.text = "You Have Won!";
+                    else
+                        WinLose.text = "You Have Lost!";
+
+                }
+                if(ServerClient.instance.GameState == 11)
+                {
+                    if(MatchSettings.instance.team == 1)
+                        WinLose.text = "You Have Won!";
+                    else
+                        WinLose.text = "You Have Lost!";
+
+                }
+                else
+                    WinLose.text = "Team " + (ServerClient.instance.GameState) + " has lost!";
             }
             return;
         }
