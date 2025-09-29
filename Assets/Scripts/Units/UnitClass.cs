@@ -211,9 +211,15 @@ public class UnitClass : MonoBehaviour
 
         busy = false;
         if (team == MatchSettings.instance.team)
+        {
+            gameObject.SetActive(true);
             Mesh.SetActive(true);
+        }
 
         HexManager.instance.Hexes[HexPosition].UnOccupy();
+
+        //make sure they are all snapped to the nearest hex on next turn
+        transform.position = HexManager.instance.SnapToHexGrid(transform.position, 2f);
 
         HexPosition = HexManager.instance.WorldToHex(transform.position, 2f);
         HexManager.instance.Hexes[HexPosition].Occupy(gameObject);

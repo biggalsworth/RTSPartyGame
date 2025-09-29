@@ -211,7 +211,7 @@ public class NetworkRelay : NetworkBehaviour
     {
         GameObject Base = Instantiate(prefabs[prefabs.Count - (1 + team)], pos, prefabs[prefabs.Count - (1 + team)].transform.rotation);
 
-        //BaseA.transform.localScale = Vector3.one;
+        //Base.transform.localScale = Vector3.one;
 
         NetworkServer.Spawn(Base);
 

@@ -377,7 +377,7 @@ Identity: {NetworkClient.connection?.identity}";
                     //Vector2 tilePos = new Vector2(Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
                     //HexManager.instance.Hexes.TryGetValue(tilePos, out TileClass BaseTile);//.Tile.transform.position;
 
-                    GameObject TileObj = GameObject.Find(lines[1]);
+                    GameObject TileObj = found.gameObject;
 
                     found.transform.parent = TileObj.transform;
                     found.transform.localScale = Vector3.one;
@@ -386,7 +386,7 @@ Identity: {NetworkClient.connection?.identity}";
                 }
                 else if (found.GetComponent<UnitClass>().team == 1 && lines[2] == "1")
                 {
-                    GameObject TileObj = GameObject.Find(lines[1]);
+                    GameObject TileObj = found.gameObject;
 
                     found.transform.parent = TileObj.transform;
                     found.transform.localScale = Vector3.one;

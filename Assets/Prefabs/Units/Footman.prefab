@@ -7511,11 +7511,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UnitName: Footman
   Mesh: {fileID: 883122403032291423}
+  busy: 0
   cost: 20
   team: 0
-  moveDistance: 2
+  standable: 1
+  moveDistance: 4
+  attacked: 0
   movesLeft: 0
   maxHealth: 10
+  health: 0
   defenceRating: 2
   offenceRating: 4
   attackRange: 1
@@ -7553,6 +7557,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.07
   prefabID: 0
+  team: 0
   targetHexPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &5472480631309973233
 MonoBehaviour:
@@ -7567,7 +7572,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anim: {fileID: 2278734141768742243}
-  unitInfo: {fileID: 0}
   hitEffect: {fileID: 5533478484092659770}
 --- !u!114 &-4660041557815499963
 MonoBehaviour:
@@ -7581,7 +7585,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3d420c840ee2743a1208e66b5b7a50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectionRange: 3
+  detectionRange: 4
 --- !u!82 &2823826244497722930
 AudioSource:
   m_ObjectHideFlags: 0

@@ -7013,11 +7013,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UnitName: Archer
   Mesh: {fileID: 600860525089707056}
+  busy: 0
   cost: 20
   team: 0
+  standable: 1
   moveDistance: 5
+  attacked: 0
   movesLeft: 0
   maxHealth: 10
+  health: 0
   defenceRating: 2
   offenceRating: 4
   attackRange: 3
@@ -7055,6 +7059,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.07
   prefabID: 2
+  team: 0
   targetHexPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &5472480631309973233
 MonoBehaviour:
@@ -7082,7 +7087,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca3d420c840ee2743a1208e66b5b7a50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectionRange: 5
+  detectionRange: 4
 --- !u!114 &5024878194950589559
 MonoBehaviour:
   m_ObjectHideFlags: 0

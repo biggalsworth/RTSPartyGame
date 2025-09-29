@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class BaseLogic : MonoBehaviour
 {
+
     private void OnDisable()
     {
         Debug.Log("Team " + GetComponent<UnitClass>().team + " Has Lost");

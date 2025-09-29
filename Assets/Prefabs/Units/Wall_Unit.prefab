@@ -4918,7 +4918,7 @@ GameObject:
   - component: {fileID: 5674353916860507254}
   - component: {fileID: 4243558861554213846}
   m_Layer: 0
-  m_Name: Wall
+  m_Name: Wall_Unit
   m_TagString: Unit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4977,13 +4977,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   UnitName: Sentry Tower
-  Mesh: {fileID: 1757292316981527970}
+  Mesh: {fileID: 6973823233174336477}
+  busy: 0
   cost: 50
   team: 0
   standable: 0
   moveDistance: 0
+  attacked: 0
   movesLeft: 0
   maxHealth: 50
+  health: 0
   defenceRating: 5
   offenceRating: 0
   attackRange: 0
@@ -5021,6 +5024,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0
   prefabID: 4
+  team: 0
   targetHexPosition: {x: 0, y: 0, z: 0}
 --- !u!114 &-7356928814291948723
 MonoBehaviour:
