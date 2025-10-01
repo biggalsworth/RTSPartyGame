@@ -52,18 +52,22 @@ public class TileClass
     //return a code to give more detail on occupying options. 0 = can occupy, 1 = obstacle is here, 2 = a unit is here, 3 = a building is here
     public int CheckOccupy()
     {
-        if(standable == false || TileType == TileTypes.Mountain || TileType == TileTypes.Hill || TileType == TileTypes.Water)
+        if(Occupied == null && (standable == false || TileType == TileTypes.Mountain || TileType == TileTypes.Hill || TileType == TileTypes.Water))
             return 1;
 
         if (Occupied == null && Building == null)
         {
             return 0;
         }
-        else if(Occupied && Occupied.GetComponent<UnitClass>() && TileType != TileTypes.Building)
+        else if((TileType == TileTypes.Hill || TileType == TileTypes.Water) && Occupied && Occupied.GetComponent<UnitClass>())
         {
             return 2;
         }
-        else if(TileType == TileTypes.Building || (Building && Building.GetComponent<UnitClass>()) )
+        else if (Occupied && Occupied.GetComponent<UnitClass>() && TileType != TileTypes.Building)
+        {
+            return 2;
+        }
+        else if (TileType == TileTypes.Building || (Building && Building.GetComponent<UnitClass>()))
         {
             return 3;
         }
@@ -73,7 +77,7 @@ public class TileClass
 
     public int TraverseCost()
     {
-        if (standable == false || Occupied != null && Occupied.GetComponent<UnitClass>() && TileType != TileTypes.Building)
+        if (standable == false || (Occupied != null && Occupied.GetComponent<UnitClass>() && TileType != TileTypes.Building))
             return -1;// Cannot traverse
 
         if (Building != null && Building.GetComponent<UnitClass>().team != MatchSettings.instance.team)
