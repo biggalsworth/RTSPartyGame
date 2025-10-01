@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class GameUIManager : MonoBehaviour
 {
@@ -79,6 +80,11 @@ public class GameUIManager : MonoBehaviour
             if (DeleteUnitButton.activeSelf)
                 DeleteUnitButton.SetActive(false);
         }
+
+        if (playerInfo.busy)
+            GameObject.Find("CommitTurn").GetComponent<Button>().interactable = false;
+        if (playerInfo.busy == false && GameObject.Find("CommitTurn").GetComponent<Button>().interactable == false)
+            GameObject.Find("CommitTurn").GetComponent<Button>().interactable = true;
 
         BuildingControls.SetActive(playerInfo.currBuild != null);
 
