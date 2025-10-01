@@ -39,13 +39,7 @@ public class ServerHost : MonoBehaviour
 
     private void Start()
     {
-        if (ServerHost.instance != null)
-        {
-            Destroy(gameObject); // Already exists, kill the duplicate
-            return;
-        }
 
-        instance = this;
 
         connected = false;
         isConnecting = false;
@@ -84,6 +78,13 @@ public class ServerHost : MonoBehaviour
 
     private void Awake()
     {
+        if (ServerHost.instance != null)
+        {
+            Destroy(gameObject); // Already exists, kill the duplicate
+            return;
+        }
+        instance = this;
+
         // Subscribe to connection events
         NetworkServer.OnConnectedEvent += OnClientConnected;
         NetworkServer.OnDisconnectedEvent += OnClientDisconnected;
@@ -95,6 +96,8 @@ public class ServerHost : MonoBehaviour
         // Clean up to avoid memory leaks
         NetworkServer.OnConnectedEvent -= OnClientConnected;
         NetworkServer.OnDisconnectedEvent -= OnClientDisconnected;
+
+        NetworkManager.singleton.StopHost();
 
         AuthenticationService.Instance.SignOut(true);
 
@@ -341,19 +344,20 @@ public class ServerHost : MonoBehaviour
 
         NetworkManager.singleton.ServerChangeScene("PlayScene");
     }
+
     internal void CloseGame()
     {
         connected = false;
         isConnecting = false;
-        foreach (NetworkIdentity unit in NetworkServer.spawned.Values)
+
+        foreach (NetworkIdentity unit in NetworkServer.spawned.Values.ToList())
         {
             NetworkServer.Destroy(unit.gameObject);
         }
 
         NetworkServer.SendToAll<Notification>(new Notification { text = "lost\n" + MatchSettings.instance.team });
         NetworkServer.SendToAll<Notification>(new Notification { text = "disconnect" });
-        NetworkManager.singleton.transport.Shutdown();
-        NetworkManager.singleton.StopHost(); 
+
     }
 
     public void HandleMessage(string message, NetworkConnectionToClient conn)

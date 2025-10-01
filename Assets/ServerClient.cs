@@ -97,7 +97,7 @@ public class ServerClient : MonoBehaviour
                 messageRelay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
         }
 
-        if(messageRelay != NetworkClient.localPlayer.GetComponent<NetworkRelay>())
+        if (messageRelay != NetworkClient.localPlayer.GetComponent<NetworkRelay>())
             messageRelay = NetworkClient.localPlayer.GetComponent<NetworkRelay>();
 
     }
@@ -144,7 +144,7 @@ public class ServerClient : MonoBehaviour
             Debug.Log("Connected : " + NetworkClient.isConnected);
             connected = NetworkClient.isConnected;
 
-            if(connected)
+            if (connected)
                 NetworkClient.Send<Notification>(new Notification { text = "connected" });
 
 
@@ -185,7 +185,7 @@ Identity: {NetworkClient.connection?.identity}";
 
     private IEnumerator WaitForIdentity()
     {
-        if(NetworkClient.ready == false)
+        if (NetworkClient.ready == false)
             NetworkClient.Ready();
         while (NetworkClient.isConnected == false && (NetworkClient.connection == null || NetworkClient.connection.identity == null))
         {
@@ -233,8 +233,8 @@ Identity: {NetworkClient.connection?.identity}";
         }
 
         NetworkManager.singleton.networkAddress = "relay"; // Bypass Mirror's check
-        
-        
+
+
         transport.useRelay = true;
         transport.ConfigureClientWithJoinCode(joinCode,
             onSuccess: () =>
@@ -343,7 +343,7 @@ Identity: {NetworkClient.connection?.identity}";
             GameObject.Find("TurnText").GetComponent<TextMeshProUGUI>().text = "Turn: " + lines[1];
             GameplayManager.instance.turn = int.Parse(lines[1]);
 
-            foreach(UnitClass unit in GameObject.FindObjectsByType<UnitClass>(FindObjectsSortMode.None))
+            foreach (UnitClass unit in GameObject.FindObjectsByType<UnitClass>(FindObjectsSortMode.None))
             {
                 if (unit.team != MatchSettings.instance.team)
                     unit.Mesh.SetActive(false);
@@ -369,33 +369,35 @@ Identity: {NetworkClient.connection?.identity}";
 
         if (lines[0] == "assigned")
         {
-            Debug.Log("WE HAVE A BASE");
-            foreach(BaseLogic found in GameObject.FindObjectsByType<BaseLogic>(FindObjectsSortMode.None))
-            {
-                if(found.GetComponent<UnitClass>().team == 0 && lines[2] == "0")
-                {
-                    //Vector2 tilePos = new Vector2(Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
-                    //GameObject TileObj = HexManager.instance.Hexes[tilePos].Tile;
+            StartCoroutine(AttachBaseDelayed(lines[1], lines[2]));
 
-                    GameObject TileObj = GameObject.Find(lines[1]);
-
-                    found.transform.parent = TileObj.transform;
-                    found.transform.localScale = Vector3.one;
-                    found.transform.localPosition = Vector3.zero;
-
-                }
-                else if (found.GetComponent<UnitClass>().team == 1 && lines[2] == "1")
-                {
-                    //Vector2 tilePos = new Vector2(-Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
-                    //GameObject TileObj = HexManager.instance.Hexes[tilePos].Tile;
-
-                    GameObject TileObj = GameObject.Find(lines[1]);
-
-                    found.transform.parent = TileObj.transform;
-                    found.transform.localScale = Vector3.one;
-                    found.transform.localPosition = Vector3.zero;
-                }
-            }
+            //Debug.Log("WE HAVE A BASE");
+            //foreach (BaseLogic found in GameObject.FindObjectsByType<BaseLogic>(FindObjectsSortMode.None))
+            //{
+            //    if (found.GetComponent<UnitClass>().team == 0 && lines[2] == "0")
+            //    {
+            //        //Vector2 tilePos = new Vector2(Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
+            //        //GameObject TileObj = HexManager.instance.Hexes[tilePos].Tile;
+            //
+            //        GameObject TileObj = GameObject.Find(lines[1]);
+            //
+            //        found.transform.parent = TileObj.transform;
+            //        found.transform.localScale = Vector3.one;
+            //        found.transform.localPosition = Vector3.zero;
+            //
+            //    }
+            //    else if (found.GetComponent<UnitClass>().team == 1 && lines[2] == "1")
+            //    {
+            //        //Vector2 tilePos = new Vector2(-Mathf.RoundToInt(MatchSettings.instance.size.x / 2), 0);
+            //        //GameObject TileObj = HexManager.instance.Hexes[tilePos].Tile;
+            //
+            //        GameObject TileObj = GameObject.Find(lines[1]);
+            //
+            //        found.transform.parent = TileObj.transform;
+            //        found.transform.localScale = Vector3.one;
+            //        found.transform.localPosition = Vector3.zero;
+            //    }
+            //}
 
             //GameObject BaseTile = GameObject.Find(lines[1]);
 
@@ -431,6 +433,26 @@ Identity: {NetworkClient.connection?.identity}";
     internal void DestroyUnit(GameObject unit)
     {
         player.GetComponent<NetworkRelay>().CmdDestroyUnit(unit);
+    }
+
+    private IEnumerator AttachBaseDelayed(string hexName, string team)
+    {
+        yield return null; // wait one frame so base spawns
+        yield return null; // wait one frame so base spawns
+
+        foreach (BaseLogic found in GameObject.FindObjectsByType<BaseLogic>(FindObjectsSortMode.None))
+        {
+            if (found.GetComponent<UnitClass>().team.ToString() == team)
+            {
+                GameObject TileObj = GameObject.Find(hexName);
+                if (TileObj != null)
+                {
+                    found.transform.SetParent(TileObj.transform);
+                    found.transform.localScale = Vector3.one;
+                    found.transform.localPosition = Vector3.zero;
+                }
+            }
+        }
     }
 }
 

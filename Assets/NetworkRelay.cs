@@ -1,6 +1,7 @@
 using Mirror;
 using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -212,6 +213,8 @@ public class NetworkRelay : NetworkBehaviour
         GameObject Base = Instantiate(prefabs[prefabs.Count - (1 + team)], pos, prefabs[prefabs.Count - (1 + team)].transform.rotation);
 
         //Base.transform.localScale = Vector3.one;
+        //Base.transform.parent = GameObject.Find(name).transform;
+        //Base.transform.localScale = Vector3.one;
 
         NetworkServer.Spawn(Base);
 
@@ -221,6 +224,21 @@ public class NetworkRelay : NetworkBehaviour
         if (team == 1)
             NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\n"+name+"\n1" });
             //NetworkServer.SendToAll<Notification>(new Notification { text = $"assigned\nHex_{-Mathf.RoundToInt(MatchSettings.instance.size.x / 2)}_0\n1" });
+
+        // tell clients which hex this base belongs to
+        //RpcAttachBase(Base, name, team);
+    }
+
+    [ClientRpc]
+    void RpcAttachBase(GameObject baseObj, string hexName, int team)
+    {
+        GameObject hex = GameObject.Find(hexName);
+        if (hex != null)
+        {
+            baseObj.transform.SetParent(hex.transform);
+            baseObj.transform.localScale = Vector3.one;
+            baseObj.transform.localPosition = Vector3.zero;
+        }
     }
 
 

@@ -38,17 +38,17 @@ public class GameUIManager : MonoBehaviour
                 if(ServerClient.instance.GameState == 10)
                 {
                     if(MatchSettings.instance.team == 0)
-                        WinLose.text = "You Have Won!";
-                    else
                         WinLose.text = "You Have Lost!";
+                    else
+                        WinLose.text = "You Have Won!";
 
                 }
                 if(ServerClient.instance.GameState == 11)
                 {
                     if(MatchSettings.instance.team == 1)
-                        WinLose.text = "You Have Won!";
-                    else
                         WinLose.text = "You Have Lost!";
+                    else
+                        WinLose.text = "You Have Won!";
 
                 }
                 else
@@ -105,13 +105,17 @@ public class GameUIManager : MonoBehaviour
 
         yield return null;
         yield return null;
-        yield return new WaitForSeconds(0.2f);
 
-        ServerHost.instance.CloseGame();
+        if (MatchSettings.instance.hosting)
+        {
+            ServerHost.instance.CloseGame();
+        }
+
 
         yield return new WaitForSeconds(0.2f);
 
         Destroy(ServerHost.instance.gameObject);
+
         SceneManager.LoadScene(0);
     }
 }

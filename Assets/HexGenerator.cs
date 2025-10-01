@@ -119,10 +119,8 @@ public class HexGenerator : MonoBehaviour
 
         Debug.Log("Finished Generation");
 
+        yield return new WaitForSeconds(0.2f);
         yield return null;
-
-        while (NetworkClient.localPlayer == null)
-            yield return null;
 
         if (MatchSettings.instance.hosting)
         {
@@ -132,12 +130,11 @@ public class HexGenerator : MonoBehaviour
                 NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(0, $"Hex_{Mathf.RoundToInt(gridWidth / 2)}_{0}", pos);
 
             yield return null;
-            yield return null;
 
             pos = HexToWorld(new Vector2(-Mathf.RoundToInt(gridWidth / 2), 0), 2f);
 
             if (MatchSettings.instance.hosting)
-                NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(1, $"Hex_{-Mathf.RoundToInt(gridWidth / 2)}_{0}", pos);
+                NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(1, $"Hex_{-(Mathf.RoundToInt(gridWidth / 2))}_{0}", pos);
                 //NetworkClient.localPlayer.GetComponent<NetworkRelay>().CmdSpawnBases(1, pos);
 
         }
